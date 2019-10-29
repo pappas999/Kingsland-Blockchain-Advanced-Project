@@ -63,13 +63,7 @@ function createNewWallet(password) {
     let seed = bip39.mnemonicToSeedSync(mnemonic).toString('hex');
     let master = HDKey.fromMasterSeed(seed);
 
-    console.log(root)
-
-    // for (var i = 0; i < 5; i++) {
-    //     path = derivationPath + i;
-    //     var addrNode = root.derive(path);
-    //     derivePubKeyFromPrivate(addrNode._privateKey)
-    // }
+    console.log(master);
 
 
 }
