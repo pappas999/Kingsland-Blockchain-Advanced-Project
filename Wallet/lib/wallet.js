@@ -1,76 +1,53 @@
-/*
-    main.js
-*/
+function Wallet(privateKey, provider) {
+    this.privateKey = privateKey;
+    this.publicKey = this.derivePubKeyFromPrivate(privateKey);
+    this.address = this.deriveAddressFromPublic(this.publicKey);
+    this.provider = provider;
+    this.mnemonic = "";
 
-let bip39 = require("bip39");
-let HDKey = require("hdkey");
-let scrypt = require("scrypt-js");
-let elliptic = require('elliptic');
-let ec = new elliptic.ec('secp256k1');
+    function derivePubKeyFromPrivate(privateKey) {
 
-
-
-let derivationPath = "m/44'/60'/0'/0/";
-
-// Scrypt KDF parameters
-const N = 16384;
-const r = 16;
-const p = 1;
-const dklen = 64;
-
-
-class Wallet {
-
-}
-
-
-function encryptWalletAndSaveJSON(password, root) {
-
-}
-
-
-function decryptWallet(password) {
-
-}
-
-
-
-
-function derivePubKeyFromPrivate(privateKey) {
-
-    let keyPair = ec.keyFromPrivate(privateKey);
-    // let privKey = keyPair.getPrivate("hex");
-    let pubKey = keyPair.getPublic();
-
-    // console.log(`Private key: ${privKey}`);
-    // console.log("Public key :", pubKey.encode("hex").substr(2));
-
-    let pubKey_x = pubKey.getX().toString(16, 64);
-    let pubKey_y = pubKey.getY().toString(16, 64);
+        let keyPair = ec.keyFromPrivate(privateKey);
+        let pubKey = keyPair.getPublic();
     
-    // Generate the compressed public key
-    pubKey_compressed = pubKey_x + parseInt(pubKey_y[63], 16) % 2;
-    // console.log("Compressed Public key (65 hex digits):\t\t", pubKey_compressed);
+        let pubKey_x = pubKey.getX().toString(16, 64);
+        let pubKey_y = pubKey.getY().toString(16, 64);
+        
+        return pubKey_x + parseInt(pubKey_y[63], 16) % 2;
+    }
 
-    return pubKey_compressed;
-
+    function deriveAddressFromPublic(publicKey) {
+        return CryptoJS.RIPEMD160(publicKey).toString();
+    }
 }
 
 
+Wallet.prototype = {
+    constructor : Wallet,
+    createRandomWallet : function() {
 
-function createNewWallet(password) {
-    let mnemonic = bip39.generateMnemonic();
-    let seed = bip39.mnemonicToSeedSync(mnemonic).toString('hex');
-    let master = HDKey.fromMasterSeed(seed);
+    },
+    restoreWallet : function(password, mnemonic) {
 
-    console.log(master);
+    },
 
+    encryptWallet : function(password) {
 
+    },
+
+    decryptWallet : function(json, password) {
+
+    },
+
+    getBalance : function() {
+
+    },
+
+    signTxn : function(txn) {
+
+    },
+
+    sendSignedTxn : function(signedTxn) {
+
+    }
 }
-
-
-function restoreWallet(mnemonic) {
-    
-}
-
-createNewWallet("Hello");

@@ -39,14 +39,34 @@
     </div>
 
 
-        <script src="/static/js/jquery-3.4.1.min.js"></script>
-        <script src="/static/js/popper.min.js"></script>
-        <script src="/static/bootstrap4/js/bootstrap.min.js"></script>
+    <section id="viewHome">
+        <div class="container">
+            <h1>Blockchain Browser-based HD Wallet</h1>
+            Welcome to this wallet!
+            <ul>
+                <li>The wallet is an <a href="https://en.bitcoin.it/wiki/Deterministic_wallet">HD wallet</a> kept <b>encrypted</b> in the Local Storage.</li>
+                <li>Wallet can be created by a random mnemonic phrase, opened from a mnemonic phrase or opened from a JSON file, all with a provided password.</li>
+                <li>By a valid password, the wallet can:
+                    <ul>
+                        <li>Show its mnemonic phrase</li>
+                        <li>Show first 5 derived addresses and their balances</li>
+                        <li>Send transactions</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </section>
 
-        <script src="/lib/bip39.browser.js"></script>
-        <script src="/lib/elliptic.browser.js"></script>
-        <script src="/lib/hdkey.browser.js"></script>
-        <script src="/lib/scrypt-js.browser.js"></script>
+
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/popper.min.js"></script>
+    <script src="/static/bootstrap4/js/bootstrap.min.js"></script>
+
+    <script src="/lib/bip39.browser.js"></script>
+    <script src="/lib/elliptic.browser.js"></script>
+    <script src="/lib/hdkey.browser.js"></script>
+    <script src="/lib/crypto-js.browser.js"></script>
+    <script src="/lib/scrypt-js.browser.js"></script>
 </body>
 </html>
 
