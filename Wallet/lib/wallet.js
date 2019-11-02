@@ -124,6 +124,26 @@ Wallet.fromMnemonic = function(mnemonic) {
 
 
 Wallet.decryptFromJSON = function(password, json, callback) {
+    var data = JSON.parse(json);
+    var N = data['scrypt']['N'];
+    var r = data['scrypt']['r'];
+    var p = data['scrypt']['p'];
+    var kdf_salt = hexStringToByte(data['scrypt']['salt']);
+    var dklen = data['scrypt']['dklen'];
+
+    var ciphertext = data['aes'];
+    var iv = data['iv'];
+    var hmac = data['mac'];
+
+    var key = kdf(password, kdf_salt);
+    var aes_key = key.slice(0, 32);
+    var hmac_key =  CryptoJS.enc.Hex.parse(byteToHexString(key.slice(32, 64)));
+
+    hmac_verify = CryptoJS.HmacSHA256(password, hmac_key).toString();
+
+    if(hmac_key !== hmac_verify) {
+        
+    }
 
 }
 
@@ -139,10 +159,12 @@ Wallet.prototype.encrypt = function(password, callback) {
     var iv = secureRandom.randomUint8Array(16);
 
     var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
-    var encryptedBytes = aesCbc.encrypt(wallet.privateKey);
+    var encryptedBytes = aesCbc.encrypt(this.privateKey);
     var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
 
     var hmac = CryptoJS.HmacSHA256(password, hmac_key).toString();
+
+    
 
     var json_data = {
         'aes' : encryptedHex,
