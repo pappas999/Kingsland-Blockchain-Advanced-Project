@@ -4,26 +4,27 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blockchain Wallet Project</title>
-    <link rel="shortcut icon" href="/static/img/favicon.ico"/>
+    <link rel="shortcut icon" href="static/img/favicon.ico"/>
 
-    <link rel="stylesheet" href="/static/bootstrap4/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="static/bootstrap4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/styles.css">
 
 
-    <script src="/static/js/jquery-3.4.1.min.js"></script>
-    <script src="/static/js/popper.min.js"></script>
-    <script src="/static/bootstrap4/js/bootstrap.min.js"></script>
+    <script src="static/js/jquery-3.4.1.min.js"></script>
+    <script src="static/js/popper.min.js"></script>
+    <script src="static/bootstrap4/js/bootstrap.min.js"></script>
 
-    <script src="/libs/bip39.browser.js"></script>
-    <script src="/libs/elliptic.browser.js"></script>
-    <script src="/libs/hdkey.browser.js"></script>
-    <script src="/libs/secure-random.browser.js"></script>
-    <script src="/libs/crypto-js.browser.js"></script>
-    <script src="/libs/aes-js.browser.js"></script>
-    <script src="/libs/scrypt.js"></script>
-    <script src="/libs/walletApp.js"></script>
+    <script src="libs/bip39.browser.js"></script>
+    <script src="libs/elliptic.browser.js"></script>
+    <script src="libs/hdkey.browser.js"></script>
+    <script src="libs/secure-random.browser.js"></script>
+    <script src="libs/crypto-js.browser.js"></script>
+    <script src="libs/aes-js.browser.js"></script>
+    <script src="libs/scrypt.js"></script>
+    
+    <script src="libs/walletApp.js"></script>
 
-    <script src="/static/js/wallet.js"></script>
+    <script src="static/js/wallet.js"></script>
 </head>
 
 <body>
@@ -42,13 +43,19 @@
                     <a class="nav-link" href="#" id="linkCreateNewWallet">Create New Wallet</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" id="linkOpenExistingWallet">Open Existing Wallet</a>
+                    <a class="nav-link" href="#" id="linkImportWalletFromMnemonic">Open Existing Wallet</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="linkShowMnemonic">Show Mnemonic</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#" id="linkShowAddressesAndBalances">Show Addresses and Balances</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" id="linkDelete">Delete Wallet</a>
+                    <a class="nav-link" href="#" id="linkSendTransaction">Send Transaction</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="linkDelete">Logout</a>
                 </li>
             </ul>
         </div>
@@ -94,13 +101,13 @@
             <h1>Create a New Wallet</h1>
             <p>Generate a new wallet: random mnemonic + password -> encrypted JSON.</p>
             <div class="form-group">
-                <label for="passwordCreateWallet">Enter paassword</label>
+                <label for="passwordCreateWallet">Enter password</label>
                 <input type="password" class="form-control" id="passwordCreateWallet" placeholder="Password">
             </div>
             <button id="buttonGenerateNewWallet" type="submit" class="btn btn-primary">Generate Now</button>
 
-            <p>JSON:</p>
             <div class="form-group">
+                <label for="textareaCreateWalletResult">JSON</label>
                 <textarea id="textareaCreateWalletResult" class="form-control result" readonly="true"></textarea>
             </div>
         </div>
@@ -110,14 +117,86 @@
         <div class="container">
             <h1>Open a Wallet From Mnemonic</h1>
             <p>Open a wallet: mnemonic + password -> encrypted JSON.</p>
-            <p>Enter your Mnemonic Phrase: </p>
-            <textarea id="textareaOpenWallet"></textarea>
-            <span>Enter password: </span><input type="password" id="passwordOpenWallet">
-            <input type="button" id="buttonOpenExistingWallet" value="Open Wallet"/>
-            <p>JSON:</p>
-            <textarea id="textareaOpenWalletResult" class="result" readonly="true"></textarea>
+            <div class="form-group">
+                <label for="textareaOpenWallet">Enter your mnemonic phrase</label>
+                <textarea id="textareaOpenWallet" class="form-control" placeholder="toddler online monitor oblige solid enrich cycle animal mad prevent hockey motor"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="passwordOpenWallet">Enter paassword</label>
+                <input type="password" class="form-control" id="passwordOpenWallet" placeholder="Password">
+            </div>
+            <button id="buttonOpenExistingWallet" type="submit" class="btn btn-primary">Open Wallet</button>
+
+            <div class="form-group">
+                <label for="textareaOpenWalletResult">JSON</label>
+                <textarea id="textareaOpenWalletResult" class="form-control result" readonly="true"></textarea>
+            </div>
         </div>
     </section>
+
+    <section id="viewShowAddressesAndBalances">
+        <div class="container">
+            <h1>Show Addresses and Balances</h1>
+            <p>Show Addresses and Balances: password -> unlock wallet -> derive the first 5 addresses and show their balances</p>
+            <div class="form-group">
+                <label for="passwordShowAddresses">Enter password</label>
+                <input type="password" class="form-control" id="passwordShowAddresses" placeholder="Password">
+            </div>
+            <button id="buttonShowAddresses" type="submit" class="btn btn-primary">Show Addresses</button>
+            <div id="divAddressesAndBalances"></div>
+        </div>
+    </section>
+
+    <section id="viewShowMnemonic">
+        <div class="container">
+            <h1>Show Mnemonic</h1>
+            <p>Shows mnemonic: password -> unlock wallet -> mnemonic</p>
+            <div class="form-group">
+                <label for="passwordShowMnemonic">Enter password</label>
+                <input type="password" class="form-control" id="passwordShowMnemonic" placeholder="Password">
+            </div>
+            <button id="buttonShowMnemonic" type="submit" class="btn btn-primary">Show Mnemonic</button>
+        </div>
+    </section>
+
+    <section id="viewSendTransaction">
+        <div class="container">
+            <h1>Send Transaction</h1>
+            <p>Send Transaction: password -> unlock wallet -> derive 5 addresses -> show transaction form -> fill form -> sign transaction -> broadcast transaction</p>
+            <form>
+                <div class="form-group">
+                    <label for="passwordShowMnemonic">Enter password</label>
+                    <input type="password" class="form-control" id="passwordSendTransaction" placeholder="Password">
+                </div>
+                <button id="buttonUnlockWallet" class="btn btn-primary">Unlock</button>
+            </form>
+
+            <form id="divSignAndSendTransaction">
+                <div class="form-group">
+                    <label for="senderAddress">Sender</label>
+                    <select class="form-control" name="address" id="senderAddress"></select>
+                </div>
+                <div class="form-group">
+                    <label for="recipientAddress">Recipient:</label>
+                    <input class="form-control" type="text" id="recipientAddress" placeholder="Recipient">
+                </div>
+                <div class="form-group">
+                    <label for="transferValue">Value:</label>
+                    <input class="form-control" type="number" id="transferValue"/>
+                </div>
+                <button id="buttonSignTransaction" class="btn btn-primary">Sign Transaction</button>
+
+                <div class="form-group">
+                    <label for="textareaSignedTransaction">Signed Transaction</label>
+                    <textarea id="textareaSignedTransaction" class="form-control signedTransaction" readonly="true"></textarea>
+                </div>
+                
+                <button id="buttonSendSignedTransaction" class="btn btn-primary">Send Transaction</button>
+                <textarea id="textareaSendTransactionResult" class="result" readonly="true"></textarea>
+            </form>
+        </div>
+    </section>
+
 </body>
 </html>
 

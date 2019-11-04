@@ -122,8 +122,12 @@ Wallet.fromMnemonic = function(mnemonic) {
 }
 
 
-Wallet.decryptFromJSON = function(password, json) {
+Wallet.decryptFromJSON = function(json, password, progressCallback) {
     try {
+        if (progressCallback) {
+            progressCallback(0);
+        }
+
         var data = JSON.parse(json);
         var _N = data['scrypt']['N'];
         var _r = data['scrypt']['r'];
@@ -148,6 +152,10 @@ Wallet.decryptFromJSON = function(password, json) {
         var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
         var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
         var decryptedBytes = aesCbc.decrypt(encryptedBytes);
+
+        if (progressCallback) {
+            progressCallback(1);
+        }
 
         return Promise.resolve(new Wallet(decryptedBytes));
 
