@@ -27,7 +27,7 @@ class Block {
 	
 	createBlockDataHash() {
 		return cryptoJS.SHA256(JSON.stringify({index: this.index,
-										  	   transactions: this.transactions,
+											   transactions: this.transactions,
 											   difficulty: this.difficulty,
 											   prevBlockHash: this.prevBlockHash,
 											   minedBy: this.minedBy})).toString();
