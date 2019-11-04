@@ -1,18 +1,20 @@
 {
   "name": "wallet",
   "version": "1.0.0",
-  "description": "Kingsland University Advanced Project - Blockchain Network Wallet Application",
-  "main": "main.js",
+  "description": "Kingland Advanced Project - Blockchain Network - Wallet App",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Roangelo Lacamento",
   "license": "ISC",
   "dependencies": {
+    "aes-js": "^3.1.2",
     "bip39": "^3.0.2",
     "crypto-js": "^3.1.9-1",
     "elliptic": "^6.5.1",
     "hdkey": "^1.1.1",
-    "scrypt-js": "^2.0.4"
+    "http-server": "^0.11.1",
+    "secure-random": "^1.1.2"
   }
 }

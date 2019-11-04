@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Wallet Project</title>
+    <link rel="shortcut icon" href="/static/img/favicon.ico"/>
+
+    <link rel="stylesheet" href="/static/bootstrap4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/popper.min.js"></script>
+    <script src="/static/bootstrap4/js/bootstrap.min.js"></script>
+
+    <script src="/libs/bip39.browser.js"></script>
+    <script src="/libs/elliptic.browser.js"></script>
+    <script src="/libs/hdkey.browser.js"></script>
+    <script src="/libs/secure-random.browser.js"></script>
+    <script src="/libs/crypto-js.browser.js"></script>
+    <script src="/libs/aes-js.browser.js"></script>
+    <script src="/libs/scrypt.js"></script>
+    <script src="/libs/walletApp.js"></script>
+
+    <script src="/static/js/wallet.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Blockchain Wallet Application</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#" id="linkHome">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="linkCreateNewWallet">Create New Wallet</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="linkOpenExistingWallet">Open Existing Wallet</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="linkShowAddressesAndBalances">Show Addresses and Balances</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="linkDelete">Delete Wallet</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+            <div class="progress" id= "loadingBox" style="height: 20px;">
+                <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+    </div>
+
+    <div class="container">
+        <div class="alert alert-success" role="alert" id="infoBox">
+            <span></span>
+            <button type="button" class="close" aria-label="Close" id="infoBoxClose"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="alert alert-danger" role="alert" id="errorBox">
+            <span></span>
+            <button type="button" class="close" aria-label="Close" id="errorBoxClose"><span aria-hidden="true">&times;</span></button>
+        </div>
+    </div>
+
+
+    <section id="viewHome">
+        <div class="container">
+            <h1>Blockchain Browser-based HD Wallet</h1>
+            Welcome to this wallet!
+            <ul>
+                <li>The wallet is an <a href="https://en.bitcoin.it/wiki/Deterministic_wallet">HD wallet</a> kept <b>encrypted</b> in the Local Storage.</li>
+                <li>Wallet can be created by a random mnemonic phrase, opened from a mnemonic phrase or opened from a JSON file, all with a provided password.</li>
+                <li>By a valid password, the wallet can:
+                    <ul>
+                        <li>Show its mnemonic phrase</li>
+                        <li>Show first 5 derived addresses and their balances</li>
+                        <li>Send transactions</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="viewCreateNewWallet">
+        <div class="container">
+            <h1>Create a New Wallet</h1>
+            <p>Generate a new wallet: random mnemonic + password -> encrypted JSON.</p>
+            <div class="form-group">
+                <label for="passwordCreateWallet">Enter paassword</label>
+                <input type="password" class="form-control" id="passwordCreateWallet" placeholder="Password">
+            </div>
+            <button id="buttonGenerateNewWallet" type="submit" class="btn btn-primary">Generate Now</button>
+
+            <p>JSON:</p>
+            <div class="form-group">
+                <textarea id="textareaCreateWalletResult" class="form-control result" readonly="true"></textarea>
+            </div>
+        </div>
+    </section>
+    
+    <section id="viewOpenWalletFromMnemonic">
+        <div class="container">
+            <h1>Open a Wallet From Mnemonic</h1>
+            <p>Open a wallet: mnemonic + password -> encrypted JSON.</p>
+            <p>Enter your Mnemonic Phrase: </p>
+            <textarea id="textareaOpenWallet"></textarea>
+            <span>Enter password: </span><input type="password" id="passwordOpenWallet">
+            <input type="button" id="buttonOpenExistingWallet" value="Open Wallet"/>
+            <p>JSON:</p>
+            <textarea id="textareaOpenWalletResult" class="result" readonly="true"></textarea>
+        </div>
+    </section>
+</body>
+</html>
+
