@@ -77,6 +77,47 @@ class Blockchain {
 		}
 		return confirmedTransactions;
 	}
+	
+	
+	//Roangalo to fill in logic ini these 3 methods - Start
+	getAllTransactions() {
+		
+		
+		//insert logic here - combined confirmed and pending transactions and return as a single Transactions array
+
+	}	
+	
+	getConfirmedBalances() {
+		var confirmedBalances = [];  //can change to map if easier 
+		//insert logic here - loop through confirmed transactions and apply logic to populate balances array or Map
+		
+		return confirmedBalances;
+	}
+	
+	getAllBalances() {
+		var allBalances = [];  //can change to map if easier 
+		//insert logic here - loop through all transactions and apply logic to populate balances array or Map. Same as funcion above except this one goes over all transactions, not just confirmed. 
+		//Can combine into 1 function that takes a parameter if you want? (ALL or CONFIRMED)
+		
+		return allBalances;
+	}
+	
+	getAllBalances(address) {
+		var balance = [];  //can change to map if easier , in this case its a single object that will be returned  
+		//insert logic here - loop through all transactions and apply logic to populate balances array or Map for the specified address
+		
+		return balance;
+	}
+	//Roangalo to fill in logic ini these 3 methods - End
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
 
 class Transaction {
@@ -175,8 +216,8 @@ class Node {
 		let obj = {
 			"selfUrl" : this.selfUrl,
 			"peers" : JSON.stringify(this.peers, null, 4),          //needs fixing
-			"chain" : JSON.stringify(this.blockchain, 4), //return json representation of the blockchain object - needs fixing
-			"confirmedBalances" : 0 //replace with function call
+			"chain" : this.blockchain, //return json representation of the blockchain object - needs fixing when implement miner tasks
+			"confirmedBalances" : this.blockchain.getConfirmedBalances() 
 		}
 		return JSON.stringify(obj,null,4);
 		
