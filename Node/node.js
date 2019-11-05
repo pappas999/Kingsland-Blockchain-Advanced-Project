@@ -78,18 +78,44 @@ class Blockchain {
 		return confirmedTransactions;
 	}
 	
-	
-	//Roangalo to fill in logic ini these 3 methods - Start
 	getAllTransactions() {
-		
-		
-		//insert logic here - combined confirmed and pending transactions and return as a single Transactions array
+		var confirmedTransactions = this.getConfirmedTransactions();
+		var allTransactions = confirmedTransactions.concat(this.pendingTransactions);
 
+		return allTransactions;
 	}	
 	
 	getConfirmedBalances() {
-		var confirmedBalances = [];  //can change to map if easier 
-		//insert logic here - loop through confirmed transactions and apply logic to populate balances array or Map
+		var confirmedBalances = {};
+		var confirmedTransactions = this.getConfirmedTransactions();
+
+		for(var i = 0; i < confirmedTransactions.length; i++) {
+			var fromAddr = confirmedTransactions[i].from;
+			var toAddr = confirmedTransactions[i].to;
+			var value = confirmedTransactions[i].value;
+			var fee = confirmedTransactions[i].fee;
+
+			// subtract value from fromAddr
+			if(fromAddr in confirmedBalances) {
+				confirmedBalances[fromAddr] -= value - fee;
+			} else {
+				confirmedBalances[fromAddr] = -value - fee;
+			}
+
+			// add value to toaddr
+			if(toAddr in confirmedBalances) {
+				confirmedBalances[toAddr] += value;
+			} else {
+				confirmedBalances[toAddr] = value;
+			}
+
+			// we need to remove addr if its value now is zero
+			if(confirmedBalances[fromAddr] === 0)
+				delete confirmedBalances[fromAddr];
+
+			if(confirmedBalances[toAddr] === 0)
+				delete confirmedBalances[toAddr];
+		}
 		
 		return confirmedBalances;
 	}
@@ -102,21 +128,61 @@ class Blockchain {
 		return allBalances;
 	}
 	
-	getAllBalances(address) {
-		var balance = [];  //can change to map if easier , in this case its a single object that will be returned  
-		//insert logic here - loop through all transactions and apply logic to populate balances array or Map for the specified address
+	getAddressBalance(address) {
+		var balance = {  // this is where we store our balances for an address/account
+			"safeBalance" : 0,
+			"confirmedBalance" : 0,
+			"pendingBalance" : 0
+		};
+
+		var blockCount = this.blocks.length; // current block count for confirmation computation
+		var confirmedTransactions = this.getConfirmedTransactions();  // this is where we get the safe and confirmed balance
+		var pendingTransactions = this.pendingTransactions;			// this is where we get the pending balance
+
+		// let's get the safe and confirmed balances first
+		for(var i = 0; i < confirmedTransactions.length; i++) {
+			var fromAddr = confirmedTransactions[i].from;
+			var toAddr = confirmedTransactions[i].to;
+			var value = confirmedTransactions[i].value;
+			var fee = confirmedTransactions[i].fee;
+			var blockNumber = confirmedTransactions[i].minedInBlockIndex;
+			var confirmation = blockCount - blockNumber;
+
+			if (fromAddr === address) {
+				if(confirmation >= 1)
+					balance['confirmedBalance'] -= value - fee;
+
+				if(confirmation >= 6)
+					balance['safeBalance'] -= value - fee;	
+			}
+
+			if (toAddr === address) {
+				if(confirmation >= 1)
+					balance['confirmedBalance'] += value;
+
+				if(confirmation >= 6)
+					balance['safeBalance'] += value;	
+			}
+		}
+
+		// now we get the pending balance
+		for(var i = 0; i < pendingTransactions.length; i++) {
+			var pfromAddr = pendingTransactions[i].from;
+			var ptoAddr = pendingTransactions[i].to;
+			var pvalue = pendingTransactions[i].value;
+			var pfee = pendingTransactions[i].fee;
+
+			if (pfromAddr === address)
+				balance['pendingBalance'] -= pvalue - pfee;	
+
+			if (ptoAddr === address)
+				balance['pendingBalance'] += pvalue;	
+		}
+
+
 		
 		return balance;
 	}
-	//Roangalo to fill in logic ini these 3 methods - End
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }
 
@@ -375,29 +441,65 @@ var initHttpServer = () => {
 	
 	//DONE LIST
 	
-	app.get('/blocks', (req, res) => res.send(node.getBlocks()));
+	app.get('/blocks', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getBlocks());
+	});
 	
-	app.get('/debug/reset-chain', (req, res) => res.send(node.resetChain()));
+	app.get('/debug/reset-chain', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.resetChain());
+	});
 	
-	app.get('/blocks/:index', (req, res) => res.send(node.getBlock(req.params.index))); 
+	app.get('/blocks/:index', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getBlock(req.params.index));
+	}); 
 	
-	app.get('/info', (req, res) => res.send(node.getInfo()));
+	app.get('/info', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getInfo());
+	});
 	
-	app.get('/debug', (req, res) => res.send(node.getDebug()));
+	app.get('/debug', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getDebug());
+	});
 	
-	app.get('/transactions/confirmed', (req, res) => res.send(node.getConfirmedTransactions()));
+	app.get('/transactions/confirmed', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getConfirmedTransactions());
+	});
 	
-	app.get('/balances', (req, res) => res.send(node.getBalances()));
+	app.get('/balances', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getBalances())
+	});
 
-	app.get('/transactions/pending', (req, res) => res.send(node.getPendingTransactions()));
+	app.get('/transactions/pending', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getPendingTransactions());
+	});
 	
-	app.get('/peers', (req, res) => res.send(node.getPeers()));
+	app.get('/peers', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getPeers());
+	});
 	
-	app.get('/address/:address/balance', (req, res) => res.send(node.getAddressBalance(req.params.address))); 
+	app.get('/address/:address/balance', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getAddressBalance(req.params.address));
+	}); 
 	
-	app.get('/address/:address/transactions', (req, res) => res.send(node.getAddressTransactions(req.params.address))); 
+	app.get('/address/:address/transactions', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getAddressTransactions(req.params.address));
+	}); 
 	
-	app.get('/transactions/:tranHash', (req, res) => res.send(node.getTransaction(req.params.tranHash))); 
+	app.get('/transactions/:tranHash', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getTransaction(req.params.tranHash));
+	}); 
 	
 	//TODO LIST
 
@@ -405,24 +507,31 @@ var initHttpServer = () => {
 	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
 			
 	app.post('/transaction/send', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
         node.sendTransaction();
         res.send();
     });
 	
 	
 	app.post('/peers/connect', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
         node.connectToPeers();
         res.send();
     });
 	
 	app.post('/peers/notify-new-block', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
         node.newBlockNotify();
         res.send();
     });
 	
-	app.get('/mining/get-mining-job/address', (req, res) => res.send(node.getMiningAddress()));  //fix params
+	app.get('/mining/get-mining-job/address', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getMiningAddress());
+	});  //fix params
 
 	app.post('/mining/submit-mined-block', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
         node.SubmitBlock();
         res.send();
     });
