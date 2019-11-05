@@ -77,6 +77,47 @@ class Blockchain {
 		}
 		return confirmedTransactions;
 	}
+	
+	
+	//Roangalo to fill in logic ini these 3 methods - Start
+	getAllTransactions() {
+		
+		
+		//insert logic here - combined confirmed and pending transactions and return as a single Transactions array
+
+	}	
+	
+	getConfirmedBalances() {
+		var confirmedBalances = [];  //can change to map if easier 
+		//insert logic here - loop through confirmed transactions and apply logic to populate balances array or Map
+		
+		return confirmedBalances;
+	}
+	
+	getAllBalances() {
+		var allBalances = [];  //can change to map if easier 
+		//insert logic here - loop through all transactions and apply logic to populate balances array or Map. Same as funcion above except this one goes over all transactions, not just confirmed. 
+		//Can combine into 1 function that takes a parameter if you want? (ALL or CONFIRMED)
+		
+		return allBalances;
+	}
+	
+	getAllBalances(address) {
+		var balance = [];  //can change to map if easier , in this case its a single object that will be returned  
+		//insert logic here - loop through all transactions and apply logic to populate balances array or Map for the specified address
+		
+		return balance;
+	}
+	//Roangalo to fill in logic ini these 3 methods - End
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
 
 class Transaction {
@@ -174,9 +215,9 @@ class Node {
 	getDebug() {
 		let obj = {
 			"selfUrl" : this.selfUrl,
-			"peers" : JSON.stringify(this.peers, null, 4),          //needs fixing
-			"chain" : JSON.stringify(this.blockchain, 4), //return json representation of the blockchain object - needs fixing
-			"confirmedBalances" : 0 //replace with function call
+			"peers" : JSON.stringify(this.peers, null, 4),          //needs fixing once implement peers
+			"chain" : this.blockchain, //return json representation of the blockchain object - needs fixing when implement miner tasks
+			"confirmedBalances" : this.blockchain.getConfirmedBalances() 
 		}
 		return JSON.stringify(obj,null,4);
 		
@@ -211,9 +252,11 @@ class Node {
 			return JSON.stringify(obj,null,4);
 		}
 	}
-	
-	//end point: /trasnactions/pending
+	 
+	//end point: /transactions/pending                 --DONE, check format once implement transactions
 	getPendingTransactions() {
+		return JSON.stringify(this.blockchain.pendingTransactions, null, 4);
+		
 		
 	}
 	
@@ -222,24 +265,59 @@ class Node {
 		return JSON.stringify(this.blockchain.getConfirmedTransactions(), null, 4);
 	}
 	
-	//end point: /trasnactions/:tranHash
-	getTransaction() {
-		
-	}
 	
-	//end point: /balances
+	//end point: /balances                        --DONE
 	getBalances() {
-		
+		return JSON.stringify(this.blockchain.getConfirmedBalances(), null, 4);
 	}
 	
-	//end point: /address/:address/transactions
-	getAddressTransactions() {
-		
+	//end point: /peers        --DONE, CHECK FORMATTING AFTER
+	getPeers() {
+		return JSON.stringify(this.peers, null, 4);
 	}
 	
-	//end point: /address/:address/balance
-	getAddressBalance() {
+	//end point: /transactions/:tranHash                 --DONE
+	getTransaction(tranHash) {
+		//use confirmed transactions as a basis for search
+		var transactions = this.blockchain.getConfirmedTransactions();
 		
+		//loop through transactions and find hash
+		for (var i = 0; i < transactions.length; i++) {
+			if (transactions[i].transactionDataHash === tranHash) {
+				return transactions[i];
+			}
+		}
+		
+		//if got to this point, it means transactioon wasn't found, so return error
+		return JSON.stringify({Message: 'Transaction ' +  tranHash + ' not found'}, null, 4);
+	}
+	
+
+	
+	//end point: /address/:address/transactions                --DONE , CHECK ORDER OF TRANSACTIONS
+	getAddressTransactions(address) {
+		var addrTransactions = [];
+		//use ALL transactions as a basis for search
+		var transactions = this.blockchain.getAllTransactions();
+		
+		//loop through transactions, if involves given address then add to transactions array
+		for (var i = 0; i < transactions.length; i++) {
+			if (transactions[i].from === address || transactions[i].to === address ) {
+				addrTransactions.push(transactions[i]);
+			}
+		}
+		
+		//sort results in order of date/time ascending then return 
+		//dateCreated is field to sort by, ascending
+		
+		
+		return addrTransactions.sort((a, b) => b.dateCreated - a.dateCreated);
+		//const sortedActivities = activities.sort((a, b) => b.date - a.date)
+	}
+	
+	//end point: /address/:address/balance            --DONE
+	getAddressBalance(address) {
+		return this.blockchain.getAddressBalance(address);
 	}
 	
 	//end point: /debug/mine/:minerAddress/:difficulty
@@ -252,10 +330,7 @@ class Node {
 		
 	}
 	
-	//end point: /peers        --BROKEN/not working properly
-	getPeers() {
-		return JSON.stringify(utils.strMapToObj(this.getPeers()), 0, 4);
-	}
+
 	
 	//end point: /peers/connect
 	connectToPeers() {
@@ -312,33 +387,23 @@ var initHttpServer = () => {
 	
 	app.get('/transactions/confirmed', (req, res) => res.send(node.getConfirmedTransactions()));
 	
-	//TODO LIST
+	app.get('/balances', (req, res) => res.send(node.getBalances()));
 
-
-	
-
+	app.get('/transactions/pending', (req, res) => res.send(node.getPendingTransactions()));
 	
 	app.get('/peers', (req, res) => res.send(node.getPeers()));
 	
-	app.get('/balances', (req, res) => res.send(node.getBalances()));
+	app.get('/address/:address/balance', (req, res) => res.send(node.getAddressBalance(req.params.address))); 
 	
+	app.get('/address/:address/transactions', (req, res) => res.send(node.getAddressTransactions(req.params.address))); 
+	
+	app.get('/transactions/:tranHash', (req, res) => res.send(node.getTransaction(req.params.tranHash))); 
+	
+	//TODO LIST
 
-	
-	
-	app.get('/transactions/pending', (req, res) => res.send(node.getPendingTransactions()));
-
-	
-	
-	app.get('/transactions/tranHash', (req, res) => res.send(node.getTransaction())); //fix params
-	
-	
 	
 	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
-		
-	app.get('/address/address/transactions', (req, res) => res.send(node.getAddressTransactions())); //fix params
-
-	app.get('/address/address/balance', (req, res) => res.send(node.getAddressBalance())); //fix params
-	
+			
 	app.post('/transaction/send', (req, res) => {
         node.sendTransaction();
         res.send();
