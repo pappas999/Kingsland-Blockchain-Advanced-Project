@@ -2,6 +2,9 @@ var cryptoJS = require("crypto-js");
 var express = require("express");
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
+const EC = require('elliptic').ec;
+const secp256k1 = new EC('secp256k1');
+
 const utils = require('./utils');
 var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
@@ -96,14 +99,14 @@ class Blockchain {
 			var fee = confirmedTransactions[i].fee;
 
 			// subtract value from fromAddr
-			if(fromAddr in confirmedBalances) {
+			if(confirmedBalances.hasOwnProperty(fromAddr)) {
 				confirmedBalances[fromAddr] -= value - fee;
 			} else {
 				confirmedBalances[fromAddr] = -value - fee;
 			}
 
 			// add value to toaddr
-			if(toAddr in confirmedBalances) {
+			if(confirmedBalances.hasOwnProperty(toAddr)) {
 				confirmedBalances[toAddr] += value;
 			} else {
 				confirmedBalances[toAddr] = value;
@@ -179,52 +182,160 @@ class Blockchain {
 				balance['pendingBalance'] += pvalue;	
 		}
 
-
-		
 		return balance;
 	}
-	
+
+	getAddressConfirmedBalance(address) {
+		var balance = 0;
+
+		var blockCount = this.blocks.length; // current block count for confirmation computation
+		var confirmedTransactions = this.getConfirmedTransactions();  // this is where we get the safe and confirmed balance
+
+		// let's get the safe and confirmed balances first
+		for(var i = 0; i < confirmedTransactions.length; i++) {
+			var fromAddr = confirmedTransactions[i].from;
+			var toAddr = confirmedTransactions[i].to;
+			var value = confirmedTransactions[i].value;
+			var fee = confirmedTransactions[i].fee;
+			var blockNumber = confirmedTransactions[i].minedInBlockIndex;
+			var confirmation = blockCount - blockNumber;
+
+			if (fromAddr === address) {
+				if(confirmation >= 1)
+					balance -= value - fee;
+			}
+
+			if (toAddr === address) {
+				if(confirmation >= 1)
+					balance += value;
+			}
+		}
+
+		return balance;
+	}
+}
+
+function hexStringToByte(str) {
+    if (!str) {
+      return new Uint8Array();
+    }
+    
+    var a = [];
+    for (var i = 0, len = str.length; i < len; i+=2) {
+      a.push(parseInt(str.substr(i,2),16));
+    }
+    
+    return new Uint8Array(a);
+}
+
+function byteToHexString(byteArray) {
+    return Array.prototype.map.call(byteArray, function(byte) {
+        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+}
+
+function decompressPublicKey(pubKeyCompressed) {
+    let pubKeyX = pubKeyCompressed.substring(0, 64);
+    let pubKeyOdd = parseInt(pubKeyCompressed.substring(64));
+    let pubKeyPoint = secp256k1.curve.pointFromX(pubKeyX, pubKeyOdd);
+
+    return pubKeyPoint;
+}
+
+
+function verifySignature(data, publicKey, signature) {
+    let pubKeyPoint = decompressPublicKey(publicKey);
+    let keyPair = secp256k1.keyPair({pub : pubKeyPoint});
+    let result = keyPair.verify(data, {r: signature[0], s : signature[1]});
+
+    return result;
 }
 
 class Transaction {
-	constructor(from, to, value, fee, dateCreated, data, senderPubKey, transactionDataHash, senderSignature, minedInBlockIndex, transactionSuccessful) {
+	constructor(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature) {
         this.from = from;
         this.to = to;
         this.value = value;
         this.fee = fee;
-        this.dateCreated = new Date().toISOString();
+        this.dateCreated = dateCreated;
 		this.data = data;
 		this.senderPubKey = senderPubKey;
 		this.transactionDataHash = this.generateTransactionHash();
 		this.senderSignature = senderSignature;
-		this.minedInBlockIndex = minedInBlockIndex;
-		this.transactionSuccessful = transactionSuccessful;
+		this.minedInBlockIndex = -1; // not confirmed yet
+		this.transactionSuccessful = 'false'; // not confirmed yet
     }
 	
 	generateTransactionHash() {
-        return cryptoJS.SHA256(JSON.stringify({from: this.from,
+		if(this.data) {
+        	return cryptoJS.SHA256(JSON.stringify({from: this.from,
 											     to: this.to,
 											  value: this.value,
 											    fee: this.fee,
 									    dateCreated: this.dateCreated,
 										   	   data: this.data,
 									   senderPubKey: this.senderPubKey})).toString();
-		
-    }
+		} else {
+			return cryptoJS.SHA256(JSON.stringify({from: this.from,
+												to: this.to,
+											 value: this.value,
+											   fee: this.fee,
+									 dateCreated: this.dateCreated,
+									senderPubKey: this.senderPubKey})).toString();
+		}
+	}
+	
+	verifyTransaction() {
+        return verifySignature(this.transactionDataHash, this.senderPubKey, this.senderSignature);
+	}
+	
+	confirmTransaction(minedInBlockIndex) {
+		this.minedInBlockIndex = minedInBlockIndex;
+		this.transactionSuccessful = "true";
+	}
+
+	generateAsPendingTransaction() {
+		if (this.data == undefined) {
+			var txn = {
+				from: this.from,
+				to: this.to,
+				value: this.value,
+				fee: this.fee,
+				dateCreated: this.dateCreated,
+				senderPubKey: this.senderPubKey,
+				transactionDataHash : this.transactionDataHash,
+				senderSignature : this.senderSignature
+				}
+		} else {
+			var txn = {
+				from: this.from,
+				to: this.to,
+				value: this.value,
+				fee: this.fee,
+				dateCreated: this.dateCreated,
+				data : this.data,
+				senderPubKey: this.senderPubKey,
+				transactionDataHash : this.transactionDataHash,
+				senderSignature : this.senderSignature
+			}
+		}
+
+		return txn;
+	}
 }
 
 function generateGenesisBlock() {
-		let transaction = [new Transaction('0000000000000000000000000000000000000000',              //from
+		let txn = new Transaction('0000000000000000000000000000000000000000',              //from
 		                                  'f3a1e69b6176052fcc4a3248f1c5a91dea308ca9',               //to
 										  1000000000000,                                            //value
 										  0,														//fee
 										  '2018 01 01T00:00:00.000Z',								//date created
 										  'trusted third parties are security holes - Nick Szabo',	//data
 										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
-										  undefined,												//transaactionDataHash  FIX THIS
-										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig   
-										  0,														//minedInBlockIndex
-										  'true')];                                                   //transactionSuccessful
+										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
+										  );
+		txn.confirmTransaction(0);
+		let transaction = [txn];
 
 		let block = new Block (0,          															//index                                              
 							   transaction,															//transactions
@@ -237,6 +348,7 @@ function generateGenesisBlock() {
 							   undefined);															//blockHash
 		return block;
 }
+
 
 class Node {
 	constructor(host, port) {
@@ -392,8 +504,94 @@ class Node {
 	}
 	
 	//end point: /transactions/send
-	sendTransaction() {
+	sendTransaction(txnData) {
+		var response = {}
+	
+		// first we make sure our data is complete
+		if (!txnData.hasOwnProperty('from')) {
+			response['errorMsg'] = "Field 'from' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('to')) {
+			response['errorMsg'] = "Field 'to' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('value')) {
+			response['errorMsg'] = "Field 'value' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('fee')) {
+			response['errorMsg'] = "Field 'fee' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('dateCreated')) {
+			response['errorMsg'] = "Field 'dateCreated' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('senderPubKey')) {
+			response['errorMsg'] = "Field 'senderPubKey' is missing";
+			return response;
+		}
+
+		if (!txnData.hasOwnProperty('senderSignature')) {
+			response['errorMsg'] = "Field 'senderSignature' is missing";
+			return response;
+		}
 		
+		var txn = new Transaction(txnData.from, txnData.to, txnData.value, txnData.fee, txnData.dateCreated, txnData.data, txnData.senderPubKey, txnData.senderSignature);
+
+		// check for transactions
+		var txns = this.blockchain.getAllTransactions();
+		for(var i = 0; i < txns.length; i++) {
+			if (txn.transactionDataHash === txns[i].transactionDataHash) {
+				response['errorMsg'] = "Duplicate transaction! Skipping!"
+				return response;
+			}
+		}
+
+		// verify sender publicKey and address if address = hashOf(pubkey)
+		if(txn.from !== cryptoJS.RIPEMD160(hexStringToByte(txn.senderPubKey)).toString()) {
+			response['errorMsg'] = "Invalid sender public key or blockchain address!";
+			return response;
+		}
+
+		// validate value
+		if(txn.value < 0) {
+			response['errorMsg'] = "value field must be greater than zero";
+			return response;
+		}
+
+		// validate fee 
+		if(txn.fee < 10) {
+			response['errorMsg'] = "Minimum fee is 10";
+			return response;
+		}
+
+		// validate sender balance
+		// var confirmedBalance = this.blockchain.getAddressConfirmedBalance(txn.from);
+		// if(confirmedBalance < txn.value + txn.fee) {
+		// 	response["errorMsg"] = "Sender does not have enough balance";
+		// 	return response;
+		// }
+
+		// verify signature
+		if(!txn.verifyTransaction()) {
+			response['errorMsg'] = "Vefication failed. Skipping!";
+			return response;
+		}
+
+		// transaction is valid! Can now be added to pending txns
+		this.blockchain.pendingTransactions.push(txn.generateAsPendingTransaction());
+
+		response["transactionDataHash"] = txn.transactionDataHash;
+
+		
+		return response;
 	}
 	
 
@@ -507,9 +705,15 @@ var initHttpServer = () => {
 	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
 			
 	app.post('/transaction/send', (req, res) => {
+		var response = node.sendTransaction(req.body);
+		if(response.hasOwnProperty('transactionDataHash')) {
+			res.status(201);
+		} else {
+			res.status(400);
+		}
+
 		res.setHeader('Content-Type', 'application/json');
-        node.sendTransaction();
-        res.send();
+        res.send(response);
     });
 	
 	
