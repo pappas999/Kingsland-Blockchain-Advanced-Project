@@ -5,6 +5,7 @@ var WebSocket = require("ws");
 const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
 
+
 const utils = require('./utils');
 const got = require('got');
 
@@ -296,7 +297,7 @@ function generateGenesisBlock() {
 		                                  'f3a1e69b6176052fcc4a3248f1c5a91dea308ca9',               //to
 										  1000000000000,                                            //value
 										  0,														//fee
-										  '2018 01 01T00:00:00.000Z',								//date created
+										  '2018-01-01T00:00:00.000Z',								//date created
 										  'trusted third parties are security holes - Nick Szabo',	//data
 										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
 										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
@@ -311,7 +312,7 @@ function generateGenesisBlock() {
 							   '0000000000000000000000000000000000000000',							//minedBy
 							   undefined,															//blockDataHash
 							   0,																	//nonce
-							   '2018 01 01T00:00:00.000Z',											//dateCreated
+							   '2018-01-01T00:00:00.000Z',											//dateCreated
 							   undefined);															//blockHash
 		return block;
 }
@@ -605,9 +606,9 @@ class Node {
 					console.log(this.selfUrl + ' already exists in ' + obj.nodeIs + ' list of peers');
 				}
 			} else {   //no peers on their peers list, so can connect
-				 await got.post(peerUrl + '/peers/connect', {
-																peerUrl: this.selfUrl
-															});
+				 //await got.post(peerUrl + '/peers/connect', {
+													//			peerUrl: this.selfUrl
+														//	});
 			}
 			
          
@@ -621,9 +622,141 @@ class Node {
 	}
 	
 	async syncChain(peerUrl) {
+		var response;
 		
+		try {
+			var peerInfo = await got(peerUrl + '/info');
+			console.log ('peer info:' + peerInfo.body);		
 		
+			var obj = JSON.parse(peerInfo.body);
+		
+			//Check to see if other chain has a higher cumulative difficulty, which means we need to sync it here
+			if(obj.cumulativeDifficulty = this.blockchain.getCumulativeDifficulty()) {
+				console.log(peerUrl + ' has a higher cumulative difficulty, syncing our chain');
+			
+				//download chain by calling blocks
+				var peerInfo = await got(peerUrl + '/blocks');
+				console.log ('peer blocks:' + peerInfo.body);		
+		
+				var blocks = JSON.parse(peerInfo.body);
+						
+				//validate the blocks
+				//step 1 - validate genesis block
+				if (JSON.stringify(this.blockchain.blocks[0]) != JSON.stringify(blocks[0])) {
+					throw new Error('Chain validation failed, Genesis Block is not the same'); 
+				}
+				
+				//step 2 validate each block - check fields
+				for(var i = 0; i < blocks.length; i++) { 
+					var block = blocks[i];
+					console.log('validating block ' + i);
+					
+					//check for missing values
+					if (block.index == null)      				throw new Error ('Block ' + i + ' index is missing');
+					if (block.difficulty == null) 				throw new Error ('Block ' + i + ' difficulty is missing');
+					if (block.nonce == null) 	 				throw new Error ('Block ' + i + ' nonce is missing');
+					if (block.transactions == null) 			throw new Error ('Block ' + i + ' transactions are missing');
+					if (block.prevBlockHash == null & i > 0) 	throw new Error ('Block ' + i + ' index is missing');  //don't need to validate for genesis block
+					if (block.minedBy == null) 					throw new Error ('Block ' + i + ' minedBy is missing');
+					if (block.blockDataHash == null) 			throw new Error ('Block ' + i + ' blockDataHash is missing');
+					if (block.blockHash == null) 				throw new Error ('Block ' + i + ' blockHash is missing');
 
+					//check types of values
+					if (isNaN(block.index))      						 throw new Error('Block ' + i + ' index is not a number');
+					if (isNaN(block.difficulty)) 						 throw new Error('Block ' + i + ' difficulty is not a number');
+					if (isNaN(block.nonce))      						 throw new Error('Block ' + i + ' nonce is not a number');
+					if (!(Array.isArray(block.transactions))) 			 throw new Error('Block ' + i + ' transactions is not an array');
+					if (typeof block.prevBlockHash !== 'string' & i > 0) throw new Error('Block ' + i + ' prevBlockHash is not a string');  //don't need to validate for genesis block
+					if (typeof block.minedBy !== 'string') 				 throw new Error('Block ' + i + ' minedBy is not a string');
+					if (typeof block.blockDataHash !== 'string') 		 throw new Error('Block ' + i + ' blockDataHash is not a string');
+					if (typeof block.blockHash !== 'string') 			 throw new Error('Block ' + i + ' blockHash is not a string');
+					if (!(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(block.dateCreated))) throw new Error('Block ' + i + ' date is not a valid ISO format');
+					
+					//validate transactions in block
+					for(let t = 0; t < block.transactions.length; t++) {
+						var transaction = block.transactions[i] = new Transaction (block.transactions[i].from,
+																				   block.transactions[i].to,
+																				   block.transactions[i].value,
+																				   block.transactions[i].fee,
+																				   block.transactions[i].dateCreated,
+																				   block.transactions[i].data,
+																				   block.transactions[i].senderPubKey,
+																				   block.transactions[i].transactionDataHash,
+																				   block.transactions[i].senderSignature,
+																				   block.transactions[i].minedInBlockIndex,
+																				   block.transactions[i].transactionSuccessful);
+						
+						//check for missing values
+						if (transaction.from == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' from is missing');
+						if (transaction.to == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' to is missing');
+						if (transaction.value == null)      			throw new Error ('Transaction ' + t + ' in Block ' + i + ' value is missing');
+						if (transaction.fee == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' fee is missing');
+						if (transaction.dateCreated == null)      		throw new Error ('Transaction ' + t + ' in Block ' + i + ' dateCreated is missing');
+						if (transaction.data == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' data is missing');
+						if (transaction.senderPubKey == null)      		throw new Error ('Transaction ' + t + ' in Block ' + i + ' senderPubKey is missing');
+						if (transaction.transactionDataHash == null)    throw new Error ('Transaction ' + t + ' in Block ' + i + ' transactionDataHash is missing');
+						if (transaction.senderSignature == null)      	throw new Error ('Transaction ' + t + ' in Block ' + i + ' senderSignature is missing');
+						if (transaction.minedInBlockIndex == null)      throw new Error ('Transaction ' + t + ' in Block ' + i + ' minedInBlockIndex is missing');
+						if (transaction.transactionSuccessful == null)  throw new Error ('Transaction ' + t + ' in Block ' + i + ' transactionSuccessful is missing');
+						
+						
+						//check type of values				
+						if (typeof transaction.from !== 'string' & i > 0)   			   throw new Error('Transaction ' + t + ' in Block ' + i + ' from is not a string');
+						if (typeof transaction.to !== 'string' & i > 0)     			   throw new Error('Transaction ' + t + ' in Block ' + i + ' to is not a string');
+						if (typeof transaction.data !== 'string' & i > 0)   			   throw new Error('Transaction ' + t + ' in Block ' + i + ' data is not a string');
+						if (typeof transaction.senderPubKey !== 'string' & i > 0)          throw new Error('Transaction ' + t + ' in Block ' + i + ' senderPubKey is not a string');
+						if (typeof transaction.transactionDataHash !== 'string' & i > 0)   throw new Error('Transaction ' + t + ' in Block ' + i + ' transactionDataHash is not a string');
+						if (typeof transaction.transactionSuccessful !== 'string' & i > 0) throw new Error('Transaction ' + t + ' in Block ' + i + ' transactionSuccessful is not a string');
+						
+						
+						if (isNaN(transaction.value))      		   throw new Error('Transaction ' + t + ' in Block ' + i + ' value is not a number');
+						if (isNaN(transaction.fee))      		   throw new Error('Transaction ' + t + ' in Block ' + i + ' fee is not a number');
+						if (isNaN(transaction.minedInBlockIndex))  throw new Error('Transaction ' + t + ' in Block ' + i + ' minedInBlockIndex is not a number');
+						
+						if (!(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(transaction.dateCreated))) throw new Error('Transaction ' + t + ' in Block ' + i + ' dateCreated is not a valid ISO format');
+						
+						/*if (!(Array.isArray(transaction.senderSignature))) 	 throw new Error('Transaction ' + t + ' in Block ' + i + ' sender signature is not an array');
+						//validate sender sig values, should be strings
+						for(let s = 0; s < transaction.senderSignature.length; s++) { 
+							var ss = transaction.senderSignature[s];
+							//check type of values				
+							if (typeof ss[s] !== 'string')   throw new Error('Transaction ' + t + ' in Block ' + i + ' Sender Signature ' + s + ' is not a valid string');
+						}*/
+						
+						//fields validated, now recalculate the transaction data hash 
+						if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
+						
+						//validate the signature
+						let keyPair = secp256k1.keyFromPublic(secp256k1.curve.pointFromX(transaction.senderPubKey.substring(0, 64), parseInt(transaction.senderPubKey.substring(64))));
+						if (!(keyPair.verify(transaction.data, {r: transaction.senderSignature[0], s: transaction.senderSignature[1]}))) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Signature is not valid');
+						
+						//re-execute all transactions, calculate the values of minedInBlockIndex and transferSuccessful
+						
+		
+		
+		
+					}
+					
+					
+				}
+			
+				//step 3 validate each transaction
+			
+			
+			
+				//if peer chain valid, replace our chain with it
+			
+				//notify all peers about the new chain, and remove any active mining jobs
+				this.blockchain.miningJobs = {};
+				console.log('chain was replaced due to peer ' + peerUrl  + ' having higher cumulative difficulty');
+			
+			
+			} else {
+				console.log(peerUrl + ' has the same of less cumulative difficulty than us, no need to sync');
+			}
+		} catch (error) {
+			console.log('Error during chain sync: ' + error);
+		}
 	}
 	
 	async syncPendingTransactions(peerUrl) {
@@ -779,9 +912,12 @@ var initHttpServer = () => {
 			
 			
 			//synchronise the chain
+			let chainSync = await node.syncChain(req.body.peerUrl);
 			
 			//synchronise the pending transactions
+			let pendingTransSync = await node.syncPendingTransactions(req.body.peerUrl);
 			
+			res.status = 200;
 			res.json({message: 'Connected to peer: ' + req.body.peerUrl });
 			
 		}
