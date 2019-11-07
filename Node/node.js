@@ -83,8 +83,6 @@ class Blockchain {
 		return confirmedTransactions;
 	}
 	
-	
-	//Roangalo to fill in logic ini these 3 methods - Start
 	getAllTransactions() {
 		var confirmedTransactions = this.getConfirmedTransactions();
 		var allTransactions = confirmedTransactions.concat(this.pendingTransactions);
