@@ -3,13 +3,15 @@ var express = require("express");
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
 const utils = require('./utils');
-var http_port = process.env.HTTP_PORT || 3001;
-var p2p_port = process.env.P2P_PORT || 6001;
+const got = require('got');
+
+
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 var sockets = [];
 
 const DEFAULT_PORT = 5555;
 const DEFAULT_HOST = 'localhost';
+const DEFAULT_P2P_PORT = 6001;
 
 
 class Block {
@@ -207,7 +209,8 @@ class Node {
 			"confirmedTransactions" : this.blockchain.getConfirmedTransactionCount(), //number of confirmed transactions
 			"pendingTransactions" : this.blockchain.pendingTransactions.length   //number of pending transactions
 		}
-		return JSON.stringify(obj,null,4);
+		//return JSON.stringify(obj,null,4);
+		return obj;
 		
 	}
 	
@@ -256,8 +259,6 @@ class Node {
 	//end point: /transactions/pending                 --DONE, check format once implement transactions
 	getPendingTransactions() {
 		return JSON.stringify(this.blockchain.pendingTransactions, null, 4);
-		
-		
 	}
 	
 	//end point: /trasnactions/confirmed            --DONE
@@ -266,15 +267,11 @@ class Node {
 	}
 	
 	
-	//end point: /balances                        --DONE
+	//end point: /balances                        --DONE   CHECK TO SEE DOESNT SHOW THE 0 one with minus balance
 	getBalances() {
 		return JSON.stringify(this.blockchain.getConfirmedBalances(), null, 4);
 	}
 	
-	//end point: /peers        --DONE, CHECK FORMATTING AFTER
-	getPeers() {
-		return JSON.stringify(this.peers, null, 4);
-	}
 	
 	//end point: /transactions/:tranHash                 --DONE
 	getTransaction(tranHash) {
@@ -302,7 +299,7 @@ class Node {
 		
 		//loop through transactions, if involves given address then add to transactions array
 		for (var i = 0; i < transactions.length; i++) {
-			if (transactions[i].from === address || transactions[i].to === address ) {
+			if (transactions[i].from == address || transactions[i].to == address ) {
 				addrTransactions.push(transactions[i]);
 			}
 		}
@@ -330,11 +327,80 @@ class Node {
 		
 	}
 	
-
+	//end point: /peers        --DONE, CHECK FORMATTING AFTER
+	getPeers() {
+		return JSON.stringify(this.peers, null, 4);
+	}
 	
 	//end point: /peers/connect
-	connectToPeers() {
+	async connectToPeer(peerUrl) {
+		var response;
 		
+        var peerInfo = await got(peerUrl + '/info');
+		console.log ('peer info:' + peerInfo.body);		
+		
+		var obj = JSON.parse(peerInfo.body);
+		
+        //Make sure chain ID matches
+        if(obj.chainId !== this.blockchain.blocks[0].blockHash) {
+			throw new Error('Chain ID does not match');
+		}
+		
+        if(obj.nodeId === this.nodeId) {
+			throw new Error('Cannot connect to yourself');
+		}
+		
+        if(this.peers[obj.nodeId]) {
+			throw new Error('Already connected to peer: ' + peerUrl);
+		}
+
+        //Add peer to liste of peers
+        this.peers[obj.nodeId] = peerUrl;
+        console.log('Connected to new peer: ' + peerUrl);
+
+        //Connect back to the peer if not already connected
+		//to check for existing connection, check their /peers endpoint to see if our URL In there
+        try {
+			var peerPeers = await got(peerUrl + '/peers');
+			console.log ('peer peer list:' + peerPeers.body);		
+		
+			obj = JSON.parse(peerPeers.body);
+			
+			if (!(Object.keys(obj).length === 0)) {       //if they have some peers, need to check if we are already in their list
+				if (!(obj.peers[this.selfUrl]))  {	                //only connect if our node URL isn't in their list of peers
+					console.log('our peer not found in theirs, will connect');
+					await got.post(peerUrl + '/peers/connect', {
+																	peerUrl: this.selfUrl
+																});
+				} else {
+					console.log(this.selfUrl + ' already exists in ' + obj.nodeIs + ' list of peers');
+				}
+			} else {   //no peers on their peers list, so can connect
+				 await got.post(peerUrl + '/peers/connect', {
+																peerUrl: this.selfUrl
+															});
+			}
+			
+         
+        } catch (error) {
+			console.log('Error during peer connect back: ' + error);
+		}
+
+        return peerInfo.body;
+		
+
+	}
+	
+	async syncChain(peerUrl) {
+		
+		
+
+	}
+	
+	async syncPendingTransactions(peerUrl) {
+		
+		
+
 	}
 	
 	//end point: /peers/notify-new-block
@@ -410,9 +476,39 @@ var initHttpServer = () => {
     });
 	
 	
-	app.post('/peers/connect', (req, res) => {
-        node.connectToPeers();
-        res.send();
+	app.post('/peers/connect', async(req, res) => {	
+	
+		try {
+			//ensure we have a Peer URL
+			if(!req.body.peerUrl) throw new Error('peerUrl is required');
+			
+			console.log('got a peerURL request from ' + req.body.peerUrl);
+			
+			if (!(utils.validURL(req.body.peerUrl))) {
+				throw new Error('Peer ' +  req.body.peerUrl + ' is not in the valid format of http:host or ip address:port');
+			} else console.log('peer URL is valid');
+		
+		    //connect to the peer
+			let info = await node.connectToPeer(req.body.peerUrl);		
+			
+			
+			//synchronise the chain
+			
+			//synchronise the pending transactions
+			
+			res.json({message: 'Connected to peer: ' + req.body.peerUrl });
+			
+		}
+		catch (error) {
+			if (error.message.includes('Chain ID') | error.message.includes('not in the valid format') | error.message.includes('peerUrl is required') ) {
+				res.status = 400;                   //bad chain or validation errors result in bad request
+			} else res.status = 409;                //other errors, node already connected etc result in conflict
+			res.json({
+						message: error.message || 'Undefined Error occured, please check logs'
+					 });
+		}
+		
+		res.send();
     });
 	
 	app.post('/peers/notify-new-block', (req, res) => {
@@ -439,9 +535,11 @@ var initHttpServer = () => {
     });*/
 	
 	
-	
+	const args = process.argv.slice(2);
+	var listenPort = args[0] || DEFAULT_PORT;
+	console.log('port being used: ' + listenPort);
 	//command to start listening
-    app.listen(DEFAULT_PORT, () => console.log('Listening http on port: ' + DEFAULT_PORT));  //check if need to get port as param and store/use
+    app.listen(listenPort, () => console.log('Listening http on port: ' + listenPort));  //check if need to get port as param and store/use
 };
 
 var initP2PServer = () => {

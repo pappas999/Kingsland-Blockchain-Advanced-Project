@@ -17,6 +17,12 @@ module.exports = {
 			strMap.set(k, obj[k]);
 		}
 		return strMap;
+	},
+	
+	validURL(str) {
+		const regex = '^((https?:\/\/))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):[0-9][0-9][0-9][0-9]$';
+		const url = new RegExp(regex);
+		return url.test(str);
 	}
 	
 	/* [
