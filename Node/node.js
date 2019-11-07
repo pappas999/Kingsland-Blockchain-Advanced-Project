@@ -217,41 +217,6 @@ class Blockchain {
 	}
 }
 
-function hexStringToByte(str) {
-    if (!str) {
-      return new Uint8Array();
-    }
-    
-    var a = [];
-    for (var i = 0, len = str.length; i < len; i+=2) {
-      a.push(parseInt(str.substr(i,2),16));
-    }
-    
-    return new Uint8Array(a);
-}
-
-function byteToHexString(byteArray) {
-    return Array.prototype.map.call(byteArray, function(byte) {
-        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('');
-}
-
-function decompressPublicKey(pubKeyCompressed) {
-    let pubKeyX = pubKeyCompressed.substring(0, 64);
-    let pubKeyOdd = parseInt(pubKeyCompressed.substring(64));
-    let pubKeyPoint = secp256k1.curve.pointFromX(pubKeyX, pubKeyOdd);
-
-    return pubKeyPoint;
-}
-
-
-function verifySignature(data, publicKey, signature) {
-    let pubKeyPoint = decompressPublicKey(publicKey);
-    let keyPair = secp256k1.keyPair({pub : pubKeyPoint});
-    let result = keyPair.verify(data, {r: signature[0], s : signature[1]});
-
-    return result;
-}
 
 class Transaction {
 	constructor(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature) {
@@ -288,7 +253,7 @@ class Transaction {
 	}
 	
 	verifyTransaction() {
-        return verifySignature(this.transactionDataHash, this.senderPubKey, this.senderSignature);
+        return utils.verifySignature(this.transactionDataHash, this.senderPubKey, this.senderSignature);
 	}
 	
 	confirmTransaction(minedInBlockIndex) {
@@ -552,7 +517,7 @@ class Node {
 		}
 
 		// verify sender publicKey and address if address = hashOf(pubkey)
-		if(txn.from !== cryptoJS.RIPEMD160(hexStringToByte(txn.senderPubKey)).toString()) {
+		if(txn.from !== cryptoJS.RIPEMD160(utils.hexStringToByte(txn.senderPubKey)).toString()) {
 			response['errorMsg'] = "Invalid sender public key or blockchain address!";
 			return response;
 		}
@@ -570,11 +535,11 @@ class Node {
 		}
 
 		// validate sender balance
-		// var confirmedBalance = this.blockchain.getAddressConfirmedBalance(txn.from);
-		// if(confirmedBalance < txn.value + txn.fee) {
-		// 	response["errorMsg"] = "Sender does not have enough balance";
-		// 	return response;
-		// }
+		var confirmedBalance = this.blockchain.getAddressConfirmedBalance(txn.from);
+		if(confirmedBalance < txn.value + txn.fee) {
+			response["errorMsg"] = "Sender does not have enough balance";
+			return response;
+		}
 
 		// verify signature
 		if(!txn.verifyTransaction()) {
@@ -707,60 +672,72 @@ var initHttpServer = () => {
 	
 	app.get('/blocks', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getBlocks());
 	});
 	
 	app.get('/debug/reset-chain', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.resetChain());
 	});
 	
 	app.get('/blocks/:index', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getBlock(req.params.index));
 	}); 
 	
 	app.get('/info', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getInfo());
 	});
 	
 	app.get('/debug', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getDebug());
 	});
 	
 	app.get('/transactions/confirmed', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getConfirmedTransactions());
 	});
 	
 	app.get('/balances', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getBalances())
 	});
 
 	app.get('/transactions/pending', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getPendingTransactions());
 	});
 	
 	app.get('/peers', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getPeers());
 	});
 	
 	app.get('/address/:address/balance', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getAddressBalance(req.params.address));
 	}); 
 	
 	app.get('/address/:address/transactions', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.send(node.getAddressTransactions(req.params.address));
 	}); 
 	
 	app.get('/transactions/:tranHash', (req, res) => {
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
 		res.send(node.getTransaction(req.params.tranHash));
 	}); 
@@ -778,6 +755,7 @@ var initHttpServer = () => {
 			res.status(400);
 		}
 
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
         res.send(response);
     });
@@ -821,17 +799,20 @@ var initHttpServer = () => {
 
 	
 	app.post('/peers/notify-new-block', (req, res) => {
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
         node.newBlockNotify();
         res.send();
     });
 	
 	app.get('/mining/get-mining-job/address', (req, res) => {
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
 		res.send(node.getMiningAddress());
 	});  //fix params
 
 	app.post('/mining/submit-mined-block', (req, res) => {
+		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
         node.SubmitBlock();
         res.send();

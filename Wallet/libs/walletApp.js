@@ -67,9 +67,8 @@ function derivePubKeyFromPrivate(privateKey) {
 }
 
 
-function Wallet(privateKey, provider) {
+function Wallet(privateKey) {
     this.privateKey = privateKey;
-    this.provider = provider;
     this.publicKey = null;
     this.address = "";
     this.mnemonic = "";
@@ -78,22 +77,6 @@ function Wallet(privateKey, provider) {
         this.privateKey = privateKey;
         this.publicKey = derivePubKeyFromPrivate(privateKey);
         this.address = CryptoJS.RIPEMD160(this.publicKey).toString();
-    }
-
-    if(provider) {
-        this.provider = getProvider(provider);
-    } else {
-        this.provider = getDefaultProvider();
-    }
-
-    function getProvider(provider) {
-
-        return new Object();
-    }
-
-    function getDefaultProvider() {
-
-        return new Object();
     }
 }
 
@@ -165,7 +148,10 @@ Wallet.decryptFromJSON = function(json, password, progressCallback) {
         return Promise.resolve(wallet);
 
     } catch(error) {
-        Promise.reject(error);
+        if (progressCallback) {
+            progressCallback(1);
+        }
+        return Promise.reject(error);
     }
 }
 
@@ -217,4 +203,18 @@ Wallet.prototype.encrypt = function(password, progressCallback) {
     } catch (error) {
         return Promise.reject(error);
     }
+}  
+
+
+function http_get(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.send();
+    return xhr.responseText;
+}
+
+
+Wallet.prototype.getBalance = function() {
+    var x = http_get("http://localhost:5555/address/" + this.address + "/balance");
+    console.log(x);
 }

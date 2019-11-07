@@ -142,7 +142,10 @@ $(document).ready(function () {
 
     function generateNewWallet() {
         let password = $('#passwordCreateWallet').val();
-        let wallet = Wallet.createRandom()
+        let wallet = Wallet.createRandom();
+
+        if(password === '')
+            return showError("Invalid password");
 
         encryptAndSaveJSON(wallet, password)
             .then(() => {
@@ -158,6 +161,10 @@ $(document).ready(function () {
             return showError("Invalid mnemonic");
 
         let password = $('#passwordOpenWallet').val();
+
+        if(password === '')
+            return showError("Invalid password");
+
         let wallet = Wallet.fromMnemonic(mnemonic);
 
         encryptAndSaveJSON(wallet, password)
@@ -173,14 +180,43 @@ $(document).ready(function () {
 
         decryptWallet(json, password)
             .then(wallet => {
-                showInfo("Your mnemonic is :" + wallet.mnemonic);
+                $('#passwordShowMnemonic').val('');
+                showInfo("Your mnemonic is : " + wallet.mnemonic);
             })
             .catch(showError)
             .finally(hideLoadingBar);
     }
 
     function showAddressesAndBalances() {
+        // let password = $('#passwordShowAddresses').val();
+        // let json = localStorage.JSON;
 
+        // decryptWallet(json, password)
+        //     .then(renderAddressesAndBalances)
+        //     .catch(error => {
+        //         $('#divAddressesAndBalances').empty();
+        //         showError(error);
+        //     })
+        //     .finally(hideLoadingBar);
+
+        //     function renderAddressesAndBalances(wallet) {
+        //         $('#divAddressesAndBalances').empty();
+    
+        //         let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
+    
+        //         for(let i = 0; i < 5; i++) {
+        //             let div = $('<div id="qrcode">');
+        //             let wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + i).privateKey, provider);
+    
+        //             wallet.getBalance()
+        //                 .then(balance => {
+        //                     div.qrcode(wallet.address);
+        //                     div.append($(`<p>${wallet.address} : ${ethers.utils.formatEther(balance)} ETH </p>`));
+        //                     $('#divAddressesAndBalances').append(div);
+        //                 })
+        //                 .catch(showError);
+        //         }
+        //     }
     }
 
     function unlockWalletAndDeriveAddresses() {

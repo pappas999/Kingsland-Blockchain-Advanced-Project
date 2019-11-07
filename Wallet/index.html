@@ -21,6 +21,7 @@
     <script src="libs/crypto-js.browser.js"></script>
     <script src="libs/aes-js.browser.js"></script>
     <script src="libs/scrypt.js"></script>
+    <script src="libs/axios.js"></script>
     
     <script src="libs/walletApp.js"></script>
 
@@ -134,6 +135,18 @@
         </div>
     </section>
 
+    <section id="viewShowMnemonic">
+        <div class="container">
+            <h1>Show Mnemonic</h1>
+            <p>Shows mnemonic: password -> unlock wallet -> mnemonic</p>
+            <div class="form-group">
+                <label for="passwordShowMnemonic">Enter password</label>
+                <input type="password" class="form-control" id="passwordShowMnemonic" placeholder="Password">
+            </div>
+            <button id="buttonShowMnemonic" type="submit" class="btn btn-primary">Show Mnemonic</button>
+        </div>
+    </section>
+
     <section id="viewShowAddressesAndBalances">
         <div class="container">
             <h1>Show Addresses and Balances</h1>
@@ -144,18 +157,6 @@
             </div>
             <button id="buttonShowAddresses" type="submit" class="btn btn-primary">Show Addresses</button>
             <div id="divAddressesAndBalances"></div>
-        </div>
-    </section>
-
-    <section id="viewShowMnemonic">
-        <div class="container">
-            <h1>Show Mnemonic</h1>
-            <p>Shows mnemonic: password -> unlock wallet -> mnemonic</p>
-            <div class="form-group">
-                <label for="passwordShowMnemonic">Enter password</label>
-                <input type="password" class="form-control" id="passwordShowMnemonic" placeholder="Password">
-            </div>
-            <button id="buttonShowMnemonic" type="submit" class="btn btn-primary">Show Mnemonic</button>
         </div>
     </section>
 
