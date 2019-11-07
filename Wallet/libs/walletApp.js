@@ -24,7 +24,7 @@ function byteToHexString(byteArray) {
     return Array.prototype.map.call(byteArray, function(byte) {
         return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');
-  }
+}
 
 // only allow ascii string
 function stringToByte(str) {
@@ -151,13 +151,18 @@ Wallet.decryptFromJSON = function(json, password, progressCallback) {
 
         var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
         var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
-        var decryptedBytes = aesCbc.decrypt(encryptedBytes);
+        var decryptedBytes = aesjs.padding.pkcs7.strip(aesCbc.decrypt(encryptedBytes));
+        var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+        var msg = JSON.parse(decryptedText);
+
+        wallet = new Wallet(hexStringToByte(msg.privKey));
+        wallet.mnemonic = msg.mnemonic;
 
         if (progressCallback) {
             progressCallback(1);
         }
 
-        return Promise.resolve(new Wallet(decryptedBytes));
+        return Promise.resolve(wallet);
 
     } catch(error) {
         Promise.reject(error);
@@ -174,7 +179,6 @@ Wallet.prototype.encrypt = function(password, progressCallback) {
         }
 
         var kdf_salt = secureRandom.randomUint8Array(16);
-
         var key = kdf(password, kdf_salt, N, r, p, dklen);
 
         var aes_key = key.slice(0, 32);
@@ -182,10 +186,13 @@ Wallet.prototype.encrypt = function(password, progressCallback) {
         var iv = secureRandom.randomUint8Array(16);
 
         var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
-        var encryptedBytes = aesCbc.encrypt(this.privateKey);
-        
+        var msg = {
+            "privKey" : byteToHexString(this.privateKey),
+            "mnemonic" : this.mnemonic
+        }
+        var msgbytes = aesjs.utils.utf8.toBytes(JSON.stringify(msg));
+        var encryptedBytes = aesCbc.encrypt(aesjs.padding.pkcs7.pad(msgbytes));
         var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
-
         var hmac = CryptoJS.HmacSHA256(password, hmac_key).toString();
 
         var json_data = {

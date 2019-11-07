@@ -83,15 +83,43 @@ class Blockchain {
 	
 	//Roangalo to fill in logic ini these 3 methods - Start
 	getAllTransactions() {
-		
-		
-		//insert logic here - combined confirmed and pending transactions and return as a single Transactions array
+		var confirmedTransactions = this.getConfirmedTransactions();
+		var allTransactions = confirmedTransactions.concat(this.pendingTransactions);
 
+		return allTransactions;
 	}	
 	
 	getConfirmedBalances() {
-		var confirmedBalances = [];  //can change to map if easier 
-		//insert logic here - loop through confirmed transactions and apply logic to populate balances array or Map
+		var confirmedBalances = {};
+		var confirmedTransactions = this.getConfirmedTransactions();
+
+		for(var i = 0; i < confirmedTransactions.length; i++) {
+			var fromAddr = confirmedTransactions[i].from;
+			var toAddr = confirmedTransactions[i].to;
+			var value = confirmedTransactions[i].value;
+			var fee = confirmedTransactions[i].fee;
+
+			// subtract value from fromAddr
+			if(confirmedBalances.hasOwnProperty(fromAddr)) {
+				confirmedBalances[fromAddr] -= value - fee;
+			} else {
+				confirmedBalances[fromAddr] = -value - fee;
+			}
+
+			// add value to toaddr
+			if(confirmedBalances.hasOwnProperty(toAddr)) {
+				confirmedBalances[toAddr] += value;
+			} else {
+				confirmedBalances[toAddr] = value;
+			}
+
+			// we need to remove addr if its value now is zero
+			if(confirmedBalances[fromAddr] === 0)
+				delete confirmedBalances[fromAddr];
+
+			if(confirmedBalances[toAddr] === 0)
+				delete confirmedBalances[toAddr];
+		}
 		
 		return confirmedBalances;
 	}
@@ -104,63 +132,211 @@ class Blockchain {
 		return allBalances;
 	}
 	
-	getAllBalances(address) {
-		var balance = [];  //can change to map if easier , in this case its a single object that will be returned  
-		//insert logic here - loop through all transactions and apply logic to populate balances array or Map for the specified address
-		
+	getAddressBalance(address) {
+		var balance = {  // this is where we store our balances for an address/account
+			"safeBalance" : 0,
+			"confirmedBalance" : 0,
+			"pendingBalance" : 0
+		};
+
+		var blockCount = this.blocks.length; // current block count for confirmation computation
+		var confirmedTransactions = this.getConfirmedTransactions();  // this is where we get the safe and confirmed balance
+		var pendingTransactions = this.pendingTransactions;			// this is where we get the pending balance
+
+		// let's get the safe and confirmed balances first
+		for(var i = 0; i < confirmedTransactions.length; i++) {
+			var fromAddr = confirmedTransactions[i].from;
+			var toAddr = confirmedTransactions[i].to;
+			var value = confirmedTransactions[i].value;
+			var fee = confirmedTransactions[i].fee;
+			var blockNumber = confirmedTransactions[i].minedInBlockIndex;
+			var confirmation = blockCount - blockNumber;
+
+			if (fromAddr === address) {
+				if(confirmation >= 1)
+					balance['confirmedBalance'] -= value - fee;
+
+				if(confirmation >= 6)
+					balance['safeBalance'] -= value - fee;	
+			}
+
+			if (toAddr === address) {
+				if(confirmation >= 1)
+					balance['confirmedBalance'] += value;
+
+				if(confirmation >= 6)
+					balance['safeBalance'] += value;	
+			}
+		}
+
+		// now we get the pending balance
+		for(var i = 0; i < pendingTransactions.length; i++) {
+			var pfromAddr = pendingTransactions[i].from;
+			var ptoAddr = pendingTransactions[i].to;
+			var pvalue = pendingTransactions[i].value;
+			var pfee = pendingTransactions[i].fee;
+
+			if (pfromAddr === address)
+				balance['pendingBalance'] -= pvalue - pfee;	
+
+			if (ptoAddr === address)
+				balance['pendingBalance'] += pvalue;	
+		}
+
 		return balance;
 	}
-	//Roangalo to fill in logic ini these 3 methods - End
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+	getAddressConfirmedBalance(address) {
+		var balance = 0;
+
+		var blockCount = this.blocks.length; // current block count for confirmation computation
+		var confirmedTransactions = this.getConfirmedTransactions();  // this is where we get the safe and confirmed balance
+
+		// let's get the safe and confirmed balances first
+		for(var i = 0; i < confirmedTransactions.length; i++) {
+			var fromAddr = confirmedTransactions[i].from;
+			var toAddr = confirmedTransactions[i].to;
+			var value = confirmedTransactions[i].value;
+			var fee = confirmedTransactions[i].fee;
+			var blockNumber = confirmedTransactions[i].minedInBlockIndex;
+			var confirmation = blockCount - blockNumber;
+
+			if (fromAddr === address) {
+				if(confirmation >= 1)
+					balance -= value - fee;
+			}
+
+			if (toAddr === address) {
+				if(confirmation >= 1)
+					balance += value;
+			}
+		}
+
+		return balance;
+	}
+}
+
+function hexStringToByte(str) {
+    if (!str) {
+      return new Uint8Array();
+    }
+    
+    var a = [];
+    for (var i = 0, len = str.length; i < len; i+=2) {
+      a.push(parseInt(str.substr(i,2),16));
+    }
+    
+    return new Uint8Array(a);
+}
+
+function byteToHexString(byteArray) {
+    return Array.prototype.map.call(byteArray, function(byte) {
+        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+}
+
+function decompressPublicKey(pubKeyCompressed) {
+    let pubKeyX = pubKeyCompressed.substring(0, 64);
+    let pubKeyOdd = parseInt(pubKeyCompressed.substring(64));
+    let pubKeyPoint = secp256k1.curve.pointFromX(pubKeyX, pubKeyOdd);
+
+    return pubKeyPoint;
+}
+
+
+function verifySignature(data, publicKey, signature) {
+    let pubKeyPoint = decompressPublicKey(publicKey);
+    let keyPair = secp256k1.keyPair({pub : pubKeyPoint});
+    let result = keyPair.verify(data, {r: signature[0], s : signature[1]});
+
+    return result;
 }
 
 class Transaction {
-	constructor(from, to, value, fee, dateCreated, data, senderPubKey, transactionDataHash, senderSignature, minedInBlockIndex, transactionSuccessful) {
+	constructor(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature) {
         this.from = from;
         this.to = to;
         this.value = value;
         this.fee = fee;
-        this.dateCreated = new Date().toISOString();
+        this.dateCreated = dateCreated;
 		this.data = data;
 		this.senderPubKey = senderPubKey;
 		this.transactionDataHash = this.generateTransactionHash();
 		this.senderSignature = senderSignature;
-		this.minedInBlockIndex = minedInBlockIndex;
-		this.transactionSuccessful = transactionSuccessful;
+		this.minedInBlockIndex = -1; // not confirmed yet
+		this.transactionSuccessful = 'false'; // not confirmed yet
     }
 	
 	generateTransactionHash() {
-        return cryptoJS.SHA256(JSON.stringify({from: this.from,
+		if(this.data) {
+        	return cryptoJS.SHA256(JSON.stringify({from: this.from,
 											     to: this.to,
 											  value: this.value,
 											    fee: this.fee,
 									    dateCreated: this.dateCreated,
 										   	   data: this.data,
 									   senderPubKey: this.senderPubKey})).toString();
-		
-    }
+		} else {
+			return cryptoJS.SHA256(JSON.stringify({from: this.from,
+												to: this.to,
+											 value: this.value,
+											   fee: this.fee,
+									 dateCreated: this.dateCreated,
+									senderPubKey: this.senderPubKey})).toString();
+		}
+	}
+	
+	verifyTransaction() {
+        return verifySignature(this.transactionDataHash, this.senderPubKey, this.senderSignature);
+	}
+	
+	confirmTransaction(minedInBlockIndex) {
+		this.minedInBlockIndex = minedInBlockIndex;
+		this.transactionSuccessful = "true";
+	}
+
+	generateAsPendingTransaction() {
+		if (this.data == undefined) {
+			var txn = {
+				from: this.from,
+				to: this.to,
+				value: this.value,
+				fee: this.fee,
+				dateCreated: this.dateCreated,
+				senderPubKey: this.senderPubKey,
+				transactionDataHash : this.transactionDataHash,
+				senderSignature : this.senderSignature
+				}
+		} else {
+			var txn = {
+				from: this.from,
+				to: this.to,
+				value: this.value,
+				fee: this.fee,
+				dateCreated: this.dateCreated,
+				data : this.data,
+				senderPubKey: this.senderPubKey,
+				transactionDataHash : this.transactionDataHash,
+				senderSignature : this.senderSignature
+			}
+		}
+
+		return txn;
+	}
 }
 
 function generateGenesisBlock() {
-		let transaction = [new Transaction('0000000000000000000000000000000000000000',              //from
+		let txn = new Transaction('0000000000000000000000000000000000000000',              //from
 		                                  'f3a1e69b6176052fcc4a3248f1c5a91dea308ca9',               //to
 										  1000000000000,                                            //value
 										  0,														//fee
 										  '2018 01 01T00:00:00.000Z',								//date created
 										  'trusted third parties are security holes - Nick Szabo',	//data
 										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
-										  undefined,												//transaactionDataHash  FIX THIS
-										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig   
-										  0,														//minedInBlockIndex
-										  'true')];                                                   //transactionSuccessful
+										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
+										  );
+		txn.confirmTransaction(0);
+		let transaction = [txn];
 
 		let block = new Block (0,          															//index                                              
 							   transaction,															//transactions
@@ -173,6 +349,7 @@ function generateGenesisBlock() {
 							   undefined);															//blockHash
 		return block;
 }
+
 
 class Node {
 	constructor(host, port) {
@@ -323,8 +500,94 @@ class Node {
 	}
 	
 	//end point: /transactions/send
-	sendTransaction() {
+	sendTransaction(txnData) {
+		var response = {}
+	
+		// first we make sure our data is complete
+		if (!txnData.hasOwnProperty('from')) {
+			response['errorMsg'] = "Field 'from' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('to')) {
+			response['errorMsg'] = "Field 'to' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('value')) {
+			response['errorMsg'] = "Field 'value' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('fee')) {
+			response['errorMsg'] = "Field 'fee' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('dateCreated')) {
+			response['errorMsg'] = "Field 'dateCreated' is missing";
+			return response;
+		}
+	
+		if (!txnData.hasOwnProperty('senderPubKey')) {
+			response['errorMsg'] = "Field 'senderPubKey' is missing";
+			return response;
+		}
+
+		if (!txnData.hasOwnProperty('senderSignature')) {
+			response['errorMsg'] = "Field 'senderSignature' is missing";
+			return response;
+		}
 		
+		var txn = new Transaction(txnData.from, txnData.to, txnData.value, txnData.fee, txnData.dateCreated, txnData.data, txnData.senderPubKey, txnData.senderSignature);
+
+		// check for transactions
+		var txns = this.blockchain.getAllTransactions();
+		for(var i = 0; i < txns.length; i++) {
+			if (txn.transactionDataHash === txns[i].transactionDataHash) {
+				response['errorMsg'] = "Duplicate transaction! Skipping!"
+				return response;
+			}
+		}
+
+		// verify sender publicKey and address if address = hashOf(pubkey)
+		if(txn.from !== cryptoJS.RIPEMD160(hexStringToByte(txn.senderPubKey)).toString()) {
+			response['errorMsg'] = "Invalid sender public key or blockchain address!";
+			return response;
+		}
+
+		// validate value
+		if(txn.value < 0) {
+			response['errorMsg'] = "value field must be greater than zero";
+			return response;
+		}
+
+		// validate fee 
+		if(txn.fee < 10) {
+			response['errorMsg'] = "Minimum fee is 10";
+			return response;
+		}
+
+		// validate sender balance
+		// var confirmedBalance = this.blockchain.getAddressConfirmedBalance(txn.from);
+		// if(confirmedBalance < txn.value + txn.fee) {
+		// 	response["errorMsg"] = "Sender does not have enough balance";
+		// 	return response;
+		// }
+
+		// verify signature
+		if(!txn.verifyTransaction()) {
+			response['errorMsg'] = "Vefication failed. Skipping!";
+			return response;
+		}
+
+		// transaction is valid! Can now be added to pending txns
+		this.blockchain.pendingTransactions.push(txn.generateAsPendingTransaction());
+
+		response["transactionDataHash"] = txn.transactionDataHash;
+
+		
+		return response;
 	}
 	
 	//end point: /peers        --DONE, CHECK FORMATTING AFTER
@@ -441,29 +704,65 @@ var initHttpServer = () => {
 	
 	//DONE LIST
 	
-	app.get('/blocks', (req, res) => res.send(node.getBlocks()));
+	app.get('/blocks', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getBlocks());
+	});
 	
-	app.get('/debug/reset-chain', (req, res) => res.send(node.resetChain()));
+	app.get('/debug/reset-chain', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.resetChain());
+	});
 	
-	app.get('/blocks/:index', (req, res) => res.send(node.getBlock(req.params.index))); 
+	app.get('/blocks/:index', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getBlock(req.params.index));
+	}); 
 	
-	app.get('/info', (req, res) => res.send(node.getInfo()));
+	app.get('/info', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getInfo());
+	});
 	
-	app.get('/debug', (req, res) => res.send(node.getDebug()));
+	app.get('/debug', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getDebug());
+	});
 	
-	app.get('/transactions/confirmed', (req, res) => res.send(node.getConfirmedTransactions()));
+	app.get('/transactions/confirmed', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getConfirmedTransactions());
+	});
 	
-	app.get('/balances', (req, res) => res.send(node.getBalances()));
+	app.get('/balances', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getBalances())
+	});
 
-	app.get('/transactions/pending', (req, res) => res.send(node.getPendingTransactions()));
+	app.get('/transactions/pending', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getPendingTransactions());
+	});
 	
-	app.get('/peers', (req, res) => res.send(node.getPeers()));
+	app.get('/peers', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getPeers());
+	});
 	
-	app.get('/address/:address/balance', (req, res) => res.send(node.getAddressBalance(req.params.address))); 
+	app.get('/address/:address/balance', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getAddressBalance(req.params.address));
+	}); 
 	
-	app.get('/address/:address/transactions', (req, res) => res.send(node.getAddressTransactions(req.params.address))); 
+	app.get('/address/:address/transactions', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getAddressTransactions(req.params.address));
+	}); 
 	
-	app.get('/transactions/:tranHash', (req, res) => res.send(node.getTransaction(req.params.tranHash))); 
+	app.get('/transactions/:tranHash', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getTransaction(req.params.tranHash));
+	}); 
 	
 	//TODO LIST
 
@@ -471,11 +770,19 @@ var initHttpServer = () => {
 	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
 			
 	app.post('/transaction/send', (req, res) => {
-        node.sendTransaction();
-        res.send();
+		var response = node.sendTransaction(req.body);
+		if(response.hasOwnProperty('transactionDataHash')) {
+			res.status(201);
+		} else {
+			res.status(400);
+		}
+
+		res.setHeader('Content-Type', 'application/json');
+        res.send(response);
     });
 	
 	
+
 	app.post('/peers/connect', async(req, res) => {	
 	
 		try {
@@ -509,22 +816,28 @@ var initHttpServer = () => {
 		}
 		
 		res.send();
-    });
+	});
+
 	
 	app.post('/peers/notify-new-block', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
         node.newBlockNotify();
         res.send();
     });
 	
-	app.get('/mining/get-mining-job/address', (req, res) => res.send(node.getMiningAddress()));  //fix params
+	app.get('/mining/get-mining-job/address', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.getMiningAddress());
+	});  //fix params
 
 	app.post('/mining/submit-mined-block', (req, res) => {
+		res.setHeader('Content-Type', 'application/json');
         node.SubmitBlock();
         res.send();
     });
 	
 			
-		
+			
    
     /*app.get('/peers', (req, res) => {
         res.send(sockets.map(s => s._socket.remoteAddress + ':' + s._socket.remotePort));
@@ -540,7 +853,7 @@ var initHttpServer = () => {
 	console.log('port being used: ' + listenPort);
 	//command to start listening
     app.listen(listenPort, () => console.log('Listening http on port: ' + listenPort));  //check if need to get port as param and store/use
-};
+}
 
 var initP2PServer = () => {
     var server = new WebSocket.Server({port: p2p_port});
