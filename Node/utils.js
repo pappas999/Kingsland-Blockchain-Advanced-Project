@@ -50,6 +50,11 @@ module.exports = {
 	},
 	
 	verifySignature(data, pubKeyCompressed, signature) {
+		console.log('in verify signature');
+		console.log('pubKeyCompressed: ' + pubKeyCompressed);
+		console.log('data: ' + data);
+		console.log('signature: ' + signature);
+		
 		let pubKeyX = pubKeyCompressed.substring(0, 64);
 		let pubKeyOdd = parseInt(pubKeyCompressed.substring(64));
 		let pubKeyPoint = secp256k1.curve.pointFromX(pubKeyX, pubKeyOdd);

@@ -25,13 +25,20 @@ class Block {
 		this.difficulty = difficulty;
         this.prevBlockHash = prevBlockHash;
         this.minedBy = minedBy;
-        this.blockDataHash = this.createBlockDataHash();
+        this.blockDataHash = blockDataHash || this.createBlockDataHash();
         this.nonce = nonce;
         this.dateCreated = dateCreated;
-        this.blockHash = this.createBlockHash();
+        this.blockHash = blockHash || this.createBlockHash();
     }
 	
 	createBlockDataHash() {
+		/*used for debug
+		  console.log('hashing: ' + JSON.stringify({index: this.index,
+											   transactions: this.transactions,
+											   difficulty: this.difficulty,
+											   prevBlockHash: this.prevBlockHash,
+											   minedBy: this.minedBy}));*/
+											   
 		return cryptoJS.SHA256(JSON.stringify({index: this.index,
 											   transactions: this.transactions,
 											   difficulty: this.difficulty,
@@ -220,7 +227,7 @@ class Blockchain {
 
 
 class Transaction {
-	constructor(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature) {
+	constructor(from, to, value, fee, dateCreated, data, senderPubKey, transactionDataHash, senderSignature) {
         this.from = from;
         this.to = to;
         this.value = value;
@@ -228,7 +235,7 @@ class Transaction {
         this.dateCreated = dateCreated;
 		this.data = data;
 		this.senderPubKey = senderPubKey;
-		this.transactionDataHash = this.generateTransactionHash();
+		this.transactionDataHash = transactionDataHash || this.generateTransactionHash();
 		this.senderSignature = senderSignature;
 		this.minedInBlockIndex = -1; // not confirmed yet
 		this.transactionSuccessful = 'false'; // not confirmed yet
@@ -300,6 +307,7 @@ function generateGenesisBlock() {
 										  '2018-01-01T00:00:00.000Z',								//date created
 										  'trusted third parties are security holes - Nick Szabo',	//data
 										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
+										  undefined,                                                //transactionDataHash
 										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
 										  );
 		txn.confirmTransaction(0);
@@ -642,13 +650,27 @@ class Node {
 						
 				//validate the blocks
 				//step 1 - validate genesis block
-				if (JSON.stringify(this.blockchain.blocks[0]) != JSON.stringify(blocks[0])) {
+				if (JSON.stringify(this.blockchain.blocks[0]) !== JSON.stringify(blocks[0])) {
 					throw new Error('Chain validation failed, Genesis Block is not the same'); 
 				}
 				
 				//step 2 validate each block - check fields
 				for(var i = 0; i < blocks.length; i++) { 
-					var block = blocks[i];
+					var block = blocks[i] = new Block(blocks[i].index,
+													  blocks[i].transactions,
+													  blocks[i].difficulty,
+													  blocks[i].prevBlockHash,
+													  blocks[i].minedBy,
+													  blocks[i].blockDataHash,
+													  blocks[i].nonce,
+													  blocks[i].dateCreated,
+													  blocks[i].blockHash);	
+		
+		
+					if (i > 0) {                             //only get previous block if not currently on Genesis Block
+						var previousBlock = blocks[i - 1];
+					}
+					
 					console.log('validating block ' + i);
 					
 					//check for missing values
@@ -674,6 +696,7 @@ class Node {
 					
 					//validate transactions in block
 					for(let t = 0; t < block.transactions.length; t++) {
+						console.log('validating transaction ' + t);
 						var transaction = block.transactions[i] = new Transaction (block.transactions[i].from,
 																				   block.transactions[i].to,
 																				   block.transactions[i].value,
@@ -682,10 +705,8 @@ class Node {
 																				   block.transactions[i].data,
 																				   block.transactions[i].senderPubKey,
 																				   block.transactions[i].transactionDataHash,
-																				   block.transactions[i].senderSignature,
-																				   block.transactions[i].minedInBlockIndex,
-																				   block.transactions[i].transactionSuccessful);
-						
+																				   block.transactions[i].senderSignature);
+
 						//check for missing values
 						if (transaction.from == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' from is missing');
 						if (transaction.to == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' to is missing');
@@ -715,39 +736,66 @@ class Node {
 						
 						if (!(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(transaction.dateCreated))) throw new Error('Transaction ' + t + ' in Block ' + i + ' dateCreated is not a valid ISO format');
 						
-						/*if (!(Array.isArray(transaction.senderSignature))) 	 throw new Error('Transaction ' + t + ' in Block ' + i + ' sender signature is not an array');
-						//validate sender sig values, should be strings
+						
+						//validate sender sig values, should be strings and should be 2 of them
+						if (!(Array.isArray(transaction.senderSignature)) | transaction.senderSignature.length !== 2) 	 throw new Error('Transaction ' + t + ' in Block ' + i + ' sender signature is not an array of 2');
+					
 						for(let s = 0; s < transaction.senderSignature.length; s++) { 
 							var ss = transaction.senderSignature[s];
 							//check type of values				
 							if (typeof ss[s] !== 'string')   throw new Error('Transaction ' + t + ' in Block ' + i + ' Sender Signature ' + s + ' is not a valid string');
-						}*/
+						}
 						
 						//fields validated, now recalculate the transaction data hash 
 						if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
 						
-						//validate the signature
-						let keyPair = secp256k1.keyFromPublic(secp256k1.curve.pointFromX(transaction.senderPubKey.substring(0, 64), parseInt(transaction.senderPubKey.substring(64))));
-						if (!(keyPair.verify(transaction.data, {r: transaction.senderSignature[0], s: transaction.senderSignature[1]}))) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Signature is not valid');
+						console.log('validating the signature');
+						//validate the signature - doesn't need to be done for genesis block
+						if (i > 0) {
+							if (!(utils.verifySignature(transaction.transactionDataHash, transaction.senderPubKey, transaction.senderSignature)))  throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Signature is not valid');
+						}
 						
-						//re-execute all transactions, calculate the values of minedInBlockIndex and transferSuccessful
-						
+
+						//re-execute all transactions, calculate the values of minedInBlockIndex and transactionSuccessful
+						transaction.minedInBlockIndex = block.index;
+						transaction.transactionSuccessful = 'true';
 		
 		
 		
 					}
+					console.log('done validating transactions for block ' + i);
 					
+					//recalculate the block data hash and block hash
+					//console.log('hash 1: ' + block.blockDataHash);
+					//console.log('hash 2: ' + block.createBlockDataHash());
+					
+					if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
+					if (block.blockHash !== block.createBlockHash()) throw new Error('Block ' + i + ' blockHash is invalid');
+					
+					console.log('checking block difficulty');
+					//ensure block hash mashes block difficulty - construct regex string that checks for the correct amount of leading zeros
+					let blockHashDiffTest = new RegExp('^0{${difficulty}}');
+					if (!(blockHashDiffTest.test(block.blockHash))) throw new Error('Block ' + i + 'difficulty doesnt match hash');
+					
+					//validate the prevBlockHash == hash of the previous block. Doesn't need to be done for Genesis Block
+					if (i > 0) {
+						if (block.prevBlockHash !== previousBlock.blockHash)  throw new Error('Block ' + i + ' prevBlockHash doesnt match previous block hash');
+					}
 					
 				}
+				console.log('done with block validation');
 			
-				//step 3 validate each transaction
+				//recalculate the cumulative difficulty of the incoming chain
+				
+				//if recalculated cumulative difficulty > current one, replace chain with incoming one
+				
+				//clear all current mining jobs
+				
+				this.blockchain.miningJobs = {};
 			
-			
-			
-				//if peer chain valid, replace our chain with it
 			
 				//notify all peers about the new chain, and remove any active mining jobs
-				this.blockchain.miningJobs = {};
+				
 				console.log('chain was replaced due to peer ' + peerUrl  + ' having higher cumulative difficulty');
 			
 			
