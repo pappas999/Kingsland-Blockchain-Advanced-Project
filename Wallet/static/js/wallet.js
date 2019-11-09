@@ -38,10 +38,10 @@ $(document).ready(function () {
 
     $('#linkSendTransaction').click(function () {
         $('#divSignAndSendTransaction').hide();
-
         $('#passwordSendTransaction').val('');
         $('#transferValue').val('');
         $('#senderAddress').empty();
+        $('#unlockWallet').show();
 
         $('#textareaSignedTransaction').val('');
         $('#textareaSendTransactionResult').val('');
@@ -57,6 +57,7 @@ $(document).ready(function () {
     $('#buttonOpenExistingWallet').click(openWalletFromMnemonic);
     $('#buttonShowMnemonic').click(showMnemonic);
     $('#buttonShowAddresses').click(showAddressesAndBalances);
+    $('#buttonUnlockWallet').click(unlockWalletAndDeriveAddresses);
 
 
     function showView(viewName) {
@@ -92,6 +93,7 @@ $(document).ready(function () {
             $('#infoBox').hide();
             $('#infoBox > span').html("");
         })
+        $('#infoBox').delay(5000).fadeOut(300);
     }
 
     function showError(errorMsg) {
@@ -101,6 +103,7 @@ $(document).ready(function () {
             $('#errorBox').hide();
             $('#errorBox > span').html("");
         })
+        $('#errorBox').delay(5000).fadeOut(300);
     }
 
     function showLoadingProgress(percent) {
@@ -229,7 +232,39 @@ $(document).ready(function () {
     }
 
     function unlockWalletAndDeriveAddresses() {
+        let password = $('#passwordSendTransaction').val();
+        let json = localStorage.JSON;
 
+        decryptWallet(json, password)
+            .then(wallet => {
+                showInfo("Wallet successfully unlocked!");
+                renderAddresses(wallet);
+                $('#divSignAndSendTransaction').show();
+                $('#unlockWallet').hide();
+            })
+            .catch(showError)
+            .finally(() => {
+                $('#passwordSendTransaction').val('');
+                hideLoadingBar();
+            });
+
+            function renderAddresses(wallet) {
+                $('#divAddressesAndBalances').empty();
+    
+                let seed = bip39.mnemonicToSeedSync(wallet.mnemonic, password);
+                let root = hdkey.fromMasterSeed(seed);
+    
+                for(let i = 0; i < 5; i++) {
+                    let path = "m/44'/0'/0'/0/" + i;
+                    let addrNode = root.derive(path);
+                    let w = new Wallet(addrNode._privateKey);
+                    let address = w.address;
+    
+                    wallets[address] = wallet;
+                    let option = $(`<option id=${w.address}>`).text(address);
+                    $("#senderAddress").append(option);
+                }
+            }
     }
 
     function signTransaction() {

@@ -168,15 +168,15 @@
         <div class="container">
             <h1>Send Transaction</h1>
             <p>Send Transaction: password -> unlock wallet -> derive 5 addresses -> show transaction form -> fill form -> sign transaction -> broadcast transaction</p>
-            <form>
+            <div id="unlockWallet">
                 <div class="form-group">
                     <label for="passwordShowMnemonic">Enter password</label>
                     <input type="password" class="form-control" id="passwordSendTransaction" placeholder="Password">
                 </div>
                 <button id="buttonUnlockWallet" class="btn btn-primary">Unlock</button>
-            </form>
+            </div>
 
-            <form id="divSignAndSendTransaction">
+            <div id="divSignAndSendTransaction">
                 <div class="form-group">
                     <label for="senderAddress">Sender</label>
                     <select class="form-control" name="address" id="senderAddress"></select>
@@ -187,7 +187,7 @@
                 </div>
                 <div class="form-group">
                     <label for="transferValue">Value:</label>
-                    <input class="form-control" type="number" id="transferValue"/>
+                    <input class="form-control" type="number" id="transferValue" min="1"/>
                 </div>
                 <button id="buttonSignTransaction" class="btn btn-primary">Sign Transaction</button>
 
@@ -197,8 +197,11 @@
                 </div>
                 
                 <button id="buttonSendSignedTransaction" class="btn btn-primary">Send Transaction</button>
-                <textarea id="textareaSendTransactionResult" class="result" readonly="true"></textarea>
-            </form>
+
+                <div class="form-group">
+                    <textarea id="textareaSendTransactionResult" class="form-control signedTransactionResult" readonly="true"></textarea>
+                </div>
+            </div>
         </div>
     </section>
 
