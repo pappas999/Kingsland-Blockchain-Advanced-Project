@@ -1,5 +1,4 @@
 $(document).ready(function () {
-    const derivationPath = "m/44'/60'/0'/0/";
 
     let wallets = {};
 
@@ -57,6 +56,7 @@ $(document).ready(function () {
     $('#buttonGenerateNewWallet').click(generateNewWallet);
     $('#buttonOpenExistingWallet').click(openWalletFromMnemonic);
     $('#buttonShowMnemonic').click(showMnemonic);
+    $('#buttonShowAddresses').click(showAddressesAndBalances);
 
 
     function showView(viewName) {
@@ -142,7 +142,7 @@ $(document).ready(function () {
 
     function generateNewWallet() {
         let password = $('#passwordCreateWallet').val();
-        let wallet = Wallet.createRandom();
+        let wallet = Wallet.createRandom(password);
 
         if(password === '')
             return showError("Invalid password");
@@ -165,7 +165,7 @@ $(document).ready(function () {
         if(password === '')
             return showError("Invalid password");
 
-        let wallet = Wallet.fromMnemonic(mnemonic);
+        let wallet = Wallet.fromMnemonic(mnemonic, password);
 
         encryptAndSaveJSON(wallet, password)
         .then(() => {
@@ -188,35 +188,44 @@ $(document).ready(function () {
     }
 
     function showAddressesAndBalances() {
-        // let password = $('#passwordShowAddresses').val();
-        // let json = localStorage.JSON;
+        let password = $('#passwordShowAddresses').val();
+        let nodeURL = $('#nodeURLShowAddresses').val();
+        let json = localStorage.JSON;
 
-        // decryptWallet(json, password)
-        //     .then(renderAddressesAndBalances)
-        //     .catch(error => {
-        //         $('#divAddressesAndBalances').empty();
-        //         showError(error);
-        //     })
-        //     .finally(hideLoadingBar);
+        decryptWallet(json, password)
+            .then(renderAddressesAndBalances)
+            .catch(error => {
+                $('#divAddressesAndBalances').empty();
+                showError(error);
+            })
+            .finally(hideLoadingBar);
 
-        //     function renderAddressesAndBalances(wallet) {
-        //         $('#divAddressesAndBalances').empty();
+            function renderAddressesAndBalances(wallet) {
+                $('#divAddressesAndBalances').empty();
+
+                let seed = bip39.mnemonicToSeedSync(wallet.mnemonic, password);
+                let root = hdkey.fromMasterSeed(seed);
     
-        //         let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
+                for(var i = 0; i < 5; i++) {
+                    let div = $('<div class="row">');
+                    let div1 = $('<div class="col col-4">');
+                    let div2 = $('<div class=col col-8">')
+                    let path = "m/44'/0'/0'/0/" + i;
+                    let addrNode = root.derive(path);
+                    let w = new Wallet(addrNode._privateKey);
     
-        //         for(let i = 0; i < 5; i++) {
-        //             let div = $('<div id="qrcode">');
-        //             let wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + i).privateKey, provider);
-    
-        //             wallet.getBalance()
-        //                 .then(balance => {
-        //                     div.qrcode(wallet.address);
-        //                     div.append($(`<p>${wallet.address} : ${ethers.utils.formatEther(balance)} ETH </p>`));
-        //                     $('#divAddressesAndBalances').append(div);
-        //                 })
-        //                 .catch(showError);
-        //         }
-        //     }
+                    w.getBalance(nodeURL, function(balance) {
+                        div1.qrcode(wallet.address);
+                        div2.append($(`<p>Address: ${w.address}</p>
+                                       <p>Safe Balance : ${balance.safeBalance}</p>
+                                       <p>Confirmed Balance : ${balance.confirmedBalance}</p>
+                                       <p>Peinding Balance : ${balance.pendingBalance}</p>`));
+                        div.append(div1);
+                        div.append(div2);
+                        $('#divAddressesAndBalances').append(div);
+                    });
+                }
+            }
     }
 
     function unlockWalletAndDeriveAddresses() {

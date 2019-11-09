@@ -526,7 +526,7 @@ class Node {
 		}
 
 		// verify sender publicKey and address if address = hashOf(pubkey)
-		if(txn.from !== cryptoJS.RIPEMD160(utils.hexStringToByte(txn.senderPubKey)).toString()) {
+		if(txn.from !== cryptoJS.RIPEMD160(txn.senderPubKey).toString()) {
 			response['errorMsg'] = "Invalid sender public key or blockchain address!";
 			return response;
 		}
