@@ -586,6 +586,7 @@ class Node {
 	//end point: /peers/connect
 	async connectToPeer(peerUrl) {
 		var response;
+		var peerFound = false;
 		
         var peerInfo = await got(peerUrl + '/info');
 		console.log ('peer info:' + peerInfo.body);		
@@ -614,22 +615,35 @@ class Node {
         try {
 			var peerPeers = await got(peerUrl + '/peers');
 			console.log ('peer peer list:' + peerPeers.body);		
-		
+			
 			obj = JSON.parse(peerPeers.body);
 			
+			
 			if (!(Object.keys(obj).length === 0)) {       //if they have some peers, need to check if we are already in their list
-				if (!(obj.peers[this.selfUrl]))  {	                //only connect if our node URL isn't in their list of peers
-					console.log('our peer not found in theirs, will connect');
-					await got.post(peerUrl + '/peers/connect', {
+			    console.log('they have some peers');
+				
+				for (var key in obj) {
+					if (!(obj[this.nodeId])) {
+						console.log('our peer not found in theirs, will connect');
+						await got.post(peerUrl + '/peers/connect', {
 																	peerUrl: this.selfUrl
 																});
-				} else {
-					console.log(this.selfUrl + ' already exists in ' + obj.nodeIs + ' list of peers');
+					} else {
+						console.log(this.selfUrl + ' already exists in ' + obj.nodeIs + ' list of peers');
+					}
 				}
+				
+
+				//if (!(peerMap.peers[this.nodeId]))  {	                //only connect if our node URL isn't in their list of peers
+				
+				
 			} else {   //no peers on their peers list, so can connect
-				 //await got.post(peerUrl + '/peers/connect', {
-													//			peerUrl: this.selfUrl
-														//	});
+			     console.log('connecting host has no peers, will connect back with URL: ' + this.selfUrl);
+				 console.log('URL for connecting back is a POST here: ' + peerUrl + '/peers/connect');
+				 await got.post(peerUrl + '/peers/connect', {
+																peerUrl: this.selfUrl
+															});
+				console.log('done with POST BACK');
 			}
 			
          
@@ -950,7 +964,7 @@ var initHttpServer = () => {
     var app = express();
     app.use(bodyParser.json());
 	
-	var node = new Node();
+	
 	
 	//DONE LIST
 	
@@ -1118,8 +1132,13 @@ var initHttpServer = () => {
 	
 	
 	const args = process.argv.slice(2);
-	var listenPort = args[0] || DEFAULT_PORT;
+	var listenPort = args[1] || DEFAULT_PORT;
 	console.log('port being used: ' + listenPort);
+	
+	var host = args[0] || DEFAULT_HOST;
+	console.log('host being used: ' + host);
+	
+	var node = new Node(host,listenPort);
 	//command to start listening
     app.listen(listenPort, () => console.log('Listening http on port: ' + listenPort));  //check if need to get port as param and store/use
 }
