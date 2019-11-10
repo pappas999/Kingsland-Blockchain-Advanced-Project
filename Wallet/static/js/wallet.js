@@ -40,6 +40,8 @@ $(document).ready(function () {
         $('#divSignAndSendTransaction').hide();
         $('#passwordSendTransaction').val('');
         $('#transferValue').val('');
+        $('#trnasferFee').val('');
+        $('#transferData').val('');
         $('#senderAddress').empty();
         $('#unlockWallet').show();
 
@@ -58,6 +60,7 @@ $(document).ready(function () {
     $('#buttonShowMnemonic').click(showMnemonic);
     $('#buttonShowAddresses').click(showAddressesAndBalances);
     $('#buttonUnlockWallet').click(unlockWalletAndDeriveAddresses);
+    $('#buttonSignTransaction').click(signTransaction);
 
 
     function showView(viewName) {
@@ -268,7 +271,50 @@ $(document).ready(function () {
     }
 
     function signTransaction() {
+        let senderAddress = $('#senderAddress option:selected').attr('id');
 
+        let wallet = wallets[senderAddress];
+        if(!wallet)
+            return showError("Invalid address!");
+
+        let recipient = $('#recipientAddress').val();
+        if(!recipient)
+            return showError("Invalid recipient!");
+
+        let value = $('#transferValue').val();
+        if(!value)
+            return showError("Invalid transfer value!");
+
+        let fee = $("#transferFee").val();
+        if(!fee)
+            return showError("Invalid transfer free");
+
+        let data = $("#transferData").val();
+
+        if(data && data !="") {
+            let transaction = {
+                from : wallet.address,
+                to: recipient,
+                value : value,
+                fee: fee,
+                dateCreated : new Date().toISOString(),
+                data : data,
+                senderPubkey : wallet.publicKey
+            }
+            let signedTxn = wallet.sign(transaction);
+            $('#textareaSignedTransaction').val(signedTxn);
+        } else {
+            let transaction = {
+                from : wallet.address,
+                to: recipient,
+                value : value,
+                fee: fee,
+                dateCreated : new Date().toISOString(),
+                senderPubkey : wallet.publicKey
+            }
+            let signedTxn = wallet.sign(transaction);
+            $('#textareaSignedTransaction').val(signedTxn);
+        }
     }
 
     function sendSignedTransaction() {

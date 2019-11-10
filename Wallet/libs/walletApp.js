@@ -66,6 +66,13 @@ function derivePubKeyFromPrivate(privateKey) {
     return pubKey_x + parseInt(pubKey_y[63], 16) % 2;
 }
 
+function signData(data, privKey) {
+
+    let keyPair = ec.keyFromPrivate(privKey);
+    let signature = keyPair.sign(data);
+
+    return [signature.r.toString(16, 64), signature.s.toString(16, 64)];
+}
 
 class Wallet {
     constructor(privateKey) {
@@ -126,11 +133,24 @@ class Wallet {
         xmlHttp.open("GET", endpoint, true); // true for asynchronous 
         xmlHttp.send(null);
     }
+
+    sign(transaction) {
+        let txnHash = CryptoJS.SHA256(JSON.stringify(transaction)).toString();
+        let signature = signData(txnHash, this.privateKey);
+
+        transaction['transactionDataHash'] = txnHash;
+        transaction['senderSignature'] = signature;
+
+        return JSON.stringify(transaction);
+
+    }
+
     static createRandom(password) {
         var entropy = secureRandom.randomUint8Array(16);
         var mnemonic = bip39.entropyToMnemonic(entropy);
         return this.fromMnemonic(mnemonic, password);
     }
+
     static fromMnemonic(mnemonic, password) {
         if (!bip39.validateMnemonic(mnemonic) || !password) {
             return new Object();
