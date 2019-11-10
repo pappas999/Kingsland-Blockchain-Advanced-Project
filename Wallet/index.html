@@ -13,6 +13,7 @@
     <script src="static/js/jquery-3.4.1.min.js"></script>
     <script src="static/js/popper.min.js"></script>
     <script src="static/bootstrap4/js/bootstrap.min.js"></script>
+    <script src="static/js/jquery.qrcode.min.js"></script>
 
     <script src="libs/bip39.browser.js"></script>
     <script src="libs/elliptic.browser.js"></script>
@@ -21,7 +22,6 @@
     <script src="libs/crypto-js.browser.js"></script>
     <script src="libs/aes-js.browser.js"></script>
     <script src="libs/scrypt.js"></script>
-    <script src="libs/axios.js"></script>
     
     <script src="libs/walletApp.js"></script>
 
@@ -155,6 +155,10 @@
                 <label for="passwordShowAddresses">Enter password</label>
                 <input type="password" class="form-control" id="passwordShowAddresses" placeholder="Password">
             </div>
+            <div class="form-group">
+                <label for="nodeURLShowAddresses">Node URL</label>
+                <input type="text" class="form-control" id="nodeURLShowAddresses" placeholder="Node URL">
+            </div>
             <button id="buttonShowAddresses" type="submit" class="btn btn-primary">Show Addresses</button>
             <div id="divAddressesAndBalances"></div>
         </div>
@@ -164,15 +168,15 @@
         <div class="container">
             <h1>Send Transaction</h1>
             <p>Send Transaction: password -> unlock wallet -> derive 5 addresses -> show transaction form -> fill form -> sign transaction -> broadcast transaction</p>
-            <form>
+            <div id="unlockWallet">
                 <div class="form-group">
                     <label for="passwordShowMnemonic">Enter password</label>
                     <input type="password" class="form-control" id="passwordSendTransaction" placeholder="Password">
                 </div>
                 <button id="buttonUnlockWallet" class="btn btn-primary">Unlock</button>
-            </form>
+            </div>
 
-            <form id="divSignAndSendTransaction">
+            <div id="divSignAndSendTransaction">
                 <div class="form-group">
                     <label for="senderAddress">Sender</label>
                     <select class="form-control" name="address" id="senderAddress"></select>
@@ -183,7 +187,15 @@
                 </div>
                 <div class="form-group">
                     <label for="transferValue">Value:</label>
-                    <input class="form-control" type="number" id="transferValue"/>
+                    <input class="form-control" type="number" id="transferValue" min="1"/>
+                </div>
+                <div class="form-group">
+                    <label for="transferFee">Fee:</label>
+                    <input class="form-control" type="number" id="transferFee" min="10"/>
+                </div>
+                <div class="form-group">
+                    <label for="transferData">Fee:</label>
+                    <input class="form-control" type="text" id="transferData" placeholder="Optional Data"/>
                 </div>
                 <button id="buttonSignTransaction" class="btn btn-primary">Sign Transaction</button>
 
@@ -193,8 +205,11 @@
                 </div>
                 
                 <button id="buttonSendSignedTransaction" class="btn btn-primary">Send Transaction</button>
-                <textarea id="textareaSendTransactionResult" class="result" readonly="true"></textarea>
-            </form>
+
+                <div class="form-group">
+                    <textarea id="textareaSendTransactionResult" class="form-control signedTransactionResult" readonly="true"></textarea>
+                </div>
+            </div>
         </div>
     </section>
 

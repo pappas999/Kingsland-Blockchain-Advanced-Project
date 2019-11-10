@@ -6,3 +6,22 @@ body > .container > div
 {
     margin-top : 50px;
 }
+
+#divAddressesAndBalances {
+    margin-top: 20px;
+}
+
+#divAddressesAndBalances > div.row {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+#divAddressesAndBalances > div.row > div > canvas{
+    width: 200px;
+}
+
+
+#divSignAndSendTransaction {
+    margin-top:20px;
+    margin-bottom: 20px;
+}

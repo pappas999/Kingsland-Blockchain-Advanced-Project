@@ -63,158 +63,143 @@ function derivePubKeyFromPrivate(privateKey) {
     let pubKey_x = pubKey.getX().toString(16, 64);
     let pubKey_y = pubKey.getY().toString(16, 64);
     
-    return hexStringToByte(pubKey_x + parseInt(pubKey_y[63], 16) % 2);
+    return pubKey_x + parseInt(pubKey_y[63], 16) % 2;
 }
 
+function signData(data, privKey) {
 
-function Wallet(privateKey) {
-    this.privateKey = privateKey;
-    this.publicKey = null;
-    this.address = "";
-    this.mnemonic = "";
+    let keyPair = ec.keyFromPrivate(privKey);
+    let signature = keyPair.sign(data);
 
-    if(privateKey) {
+    return [signature.r.toString(16, 64), signature.s.toString(16, 64)];
+}
+
+class Wallet {
+    constructor(privateKey) {
         this.privateKey = privateKey;
         this.publicKey = derivePubKeyFromPrivate(privateKey);
         this.address = CryptoJS.RIPEMD160(this.publicKey).toString();
-    }
-}
-
-
-Wallet.createRandom = function() {
-    var entropy = secureRandom.randomUint8Array(16);
-    var mnemonic = bip39.entropyToMnemonic(entropy);
-
-    return Wallet.fromMnemonic(mnemonic);
-}
-
-Wallet.fromMnemonic = function(mnemonic) {
-    let path  = "m/44'/60'/0'/0/0";
-    if (!bip39.validateMnemonic(mnemonic)) {
-        return new Object();
+        this.mnemonic = "";
     }
 
-    let seed = bip39.mnemonicToSeedSync(mnemonic).toString('hex');
-    let master = hdkey.fromMasterSeed(seed);
-    let addrNode = master.derive(path);
-
-    wallet = new Wallet(addrNode._privateKey);
-    wallet.mnemonic = mnemonic;
-
-    return wallet;
-}
-
-
-Wallet.decryptFromJSON = function(json, password, progressCallback) {
-    try {
-        if (progressCallback) {
-            progressCallback(0);
-        }
-
-        var data = JSON.parse(json);
-        var _N = data['scrypt']['N'];
-        var _r = data['scrypt']['r'];
-        var _p = data['scrypt']['p'];
-        var kdf_salt = hexStringToByte(data['scrypt']['salt']);
-        var _dklen = data['scrypt']['dklen'];
-
-        var ciphertext = data['aes'];
-        var iv = hexStringToByte(data['iv']);
-        var hmac = data['mac'];
-
-        var key = kdf(password, kdf_salt, _N, _r, _p, _dklen);
-        var aes_key = key.slice(0, 32);
-        var hmac_key =  CryptoJS.enc.Hex.parse(byteToHexString(key.slice(32, 64)));
-
-        hmac_verify = CryptoJS.HmacSHA256(password, hmac_key).toString();
-
-        if(hmac !== hmac_verify) {
-            throw "Password is incorrect!"
-        }
-
-        var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
-        var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
-        var decryptedBytes = aesjs.padding.pkcs7.strip(aesCbc.decrypt(encryptedBytes));
-        var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
-        var msg = JSON.parse(decryptedText);
-
-        wallet = new Wallet(hexStringToByte(msg.privKey));
-        wallet.mnemonic = msg.mnemonic;
-
-        if (progressCallback) {
-            progressCallback(1);
-        }
-
-        return Promise.resolve(wallet);
-
-    } catch(error) {
-        if (progressCallback) {
-            progressCallback(1);
-        }
-        return Promise.reject(error);
-    }
-}
-
-
-Wallet.prototype.encrypt = function(password, progressCallback) {
-
-    try {
-
-        if (progressCallback) {
-            progressCallback(0);
-        }
-
-        var kdf_salt = secureRandom.randomUint8Array(16);
-        var key = kdf(password, kdf_salt, N, r, p, dklen);
-
-        var aes_key = key.slice(0, 32);
-        var hmac_key =  CryptoJS.enc.Hex.parse(byteToHexString(key.slice(32, 64)));
-        var iv = secureRandom.randomUint8Array(16);
-
-        var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
-        var msg = {
-            "privKey" : byteToHexString(this.privateKey),
-            "mnemonic" : this.mnemonic
-        }
-        var msgbytes = aesjs.utils.utf8.toBytes(JSON.stringify(msg));
-        var encryptedBytes = aesCbc.encrypt(aesjs.padding.pkcs7.pad(msgbytes));
-        var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
-        var hmac = CryptoJS.HmacSHA256(password, hmac_key).toString();
-
-        var json_data = {
-            'aes' : encryptedHex,
-            'iv' : byteToHexString(iv),
-            'mac' : hmac,
-            'scrypt' : {
-                "dklen": dklen,
-                "salt": byteToHexString(kdf_salt),
-                "N": N,
-                "r": r,
-                "p": p
+    encrypt(password, progressCallback) {
+        try {
+            if (progressCallback) {
+                progressCallback(0);
             }
+            var kdf_salt = secureRandom.randomUint8Array(16);
+            var key = kdf(password, kdf_salt, N, r, p, dklen);
+            var aes_key = key.slice(0, 32);
+            var hmac_key = CryptoJS.enc.Hex.parse(byteToHexString(key.slice(32, 64)));
+            var iv = secureRandom.randomUint8Array(16);
+            var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
+            var msg = {
+                "privKey": byteToHexString(this.privateKey),
+                "mnemonic": this.mnemonic
+            };
+            var msgbytes = aesjs.utils.utf8.toBytes(JSON.stringify(msg));
+            var encryptedBytes = aesCbc.encrypt(aesjs.padding.pkcs7.pad(msgbytes));
+            var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+            var hmac = CryptoJS.HmacSHA256(password, hmac_key).toString();
+            var json_data = {
+                'aes': encryptedHex,
+                'iv': byteToHexString(iv),
+                'mac': hmac,
+                'scrypt': {
+                    "dklen": dklen,
+                    "salt": byteToHexString(kdf_salt),
+                    "N": N,
+                    "r": r,
+                    "p": p
+                }
+            };
+            if (progressCallback) {
+                progressCallback(1);
+            }
+            return Promise.resolve(JSON.stringify(json_data));
         }
-
-        if (progressCallback) {
-            progressCallback(1);
+        catch (error) {
+            return Promise.reject(error);
         }
-
-        return Promise.resolve(JSON.stringify(json_data));
-
-    } catch (error) {
-        return Promise.reject(error);
     }
-}  
 
+    getBalance(nodeHost, callback) {
+        var endpoint = nodeHost + "/address/" + this.address + "/balance/";
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                callback(JSON.parse(xmlHttp.responseText));
+        };
+        xmlHttp.open("GET", endpoint, true); // true for asynchronous 
+        xmlHttp.send(null);
+    }
 
-function http_get(url) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, false);
-    xhr.send();
-    return xhr.responseText;
-}
+    sign(transaction) {
+        let txnHash = CryptoJS.SHA256(JSON.stringify(transaction)).toString();
+        let signature = signData(txnHash, this.privateKey);
 
+        transaction['transactionDataHash'] = txnHash;
+        transaction['senderSignature'] = signature;
 
-Wallet.prototype.getBalance = function() {
-    var x = http_get("http://localhost:5555/address/" + this.address + "/balance");
-    console.log(x);
+        return JSON.stringify(transaction);
+
+    }
+
+    static createRandom(password) {
+        var entropy = secureRandom.randomUint8Array(16);
+        var mnemonic = bip39.entropyToMnemonic(entropy);
+        return this.fromMnemonic(mnemonic, password);
+    }
+
+    static fromMnemonic(mnemonic, password) {
+        if (!bip39.validateMnemonic(mnemonic) || !password) {
+            return new Object();
+        }
+        let seed = bip39.mnemonicToSeedSync(mnemonic, password);
+        let master = bip32.fromSeed(seed);
+        let wallet = new Wallet(master.privateKey);
+        wallet.mnemonic = mnemonic;
+        return wallet;
+    }
+
+    static decryptFromJSON(json, password, progressCallback) {
+        try {
+            if (progressCallback) {
+                progressCallback(0);
+            }
+            var data = JSON.parse(json);
+            var _N = data['scrypt']['N'];
+            var _r = data['scrypt']['r'];
+            var _p = data['scrypt']['p'];
+            var kdf_salt = hexStringToByte(data['scrypt']['salt']);
+            var _dklen = data['scrypt']['dklen'];
+            var ciphertext = data['aes'];
+            var iv = hexStringToByte(data['iv']);
+            var hmac = data['mac'];
+            var key = kdf(password, kdf_salt, _N, _r, _p, _dklen);
+            var aes_key = key.slice(0, 32);
+            var hmac_key = CryptoJS.enc.Hex.parse(byteToHexString(key.slice(32, 64)));
+            var hmac_verify = CryptoJS.HmacSHA256(password, hmac_key).toString();
+            if (hmac !== hmac_verify) {
+                throw "Password is incorrect!";
+            }
+            var encryptedBytes = aesjs.utils.hex.toBytes(ciphertext);
+            var aesCbc = new aesjs.ModeOfOperation.cbc(aes_key, iv);
+            var decryptedBytes = aesjs.padding.pkcs7.strip(aesCbc.decrypt(encryptedBytes));
+            var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+            var msg = JSON.parse(decryptedText);
+            let wallet = new Wallet(hexStringToByte(msg.privKey));
+            wallet.mnemonic = msg.mnemonic;
+            if (progressCallback) {
+                progressCallback(1);
+            }
+            return Promise.resolve(wallet);
+        }
+        catch (error) {
+            if (progressCallback) {
+                progressCallback(1);
+            }
+            return Promise.reject(error);
+        }
+    }
 }
