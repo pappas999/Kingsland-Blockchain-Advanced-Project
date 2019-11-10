@@ -441,6 +441,19 @@ class Node {
 		return JSON.stringify({Message: 'Transaction ' +  tranHash + ' not found'}, null, 4);
 	}
 	
+	//helper function used when processing a new pending transaction, to check if we already have it
+	getPendingTransaction(tranHash) {
+		//use pending transactions as a basis for search
+		var transactions = this.blockchain.pendingTransactions;
+		
+		//loop through transactions and find hash
+		for (var i = 0; i < transactions.length; i++) {
+			if (transactions[i].transactionDataHash === tranHash) {
+				return transactions[i];
+			}
+		}
+	}
+	
 
 	
 	//end point: /address/:address/transactions                --DONE , CHECK ORDER OF TRANSACTIONS
@@ -630,7 +643,6 @@ class Node {
 	}
 	
 	async syncChain(peerUrl) {
-		var response;
 		
 		try {
 			var peerInfo = await got(peerUrl + '/info');
@@ -638,9 +650,9 @@ class Node {
 		
 			var obj = JSON.parse(peerInfo.body);
 		
-			//Check to see if other chain has a higher cumulative difficulty, which means we need to sync it here
+			//Check to see if other chain has a higher cumulative difficulty, which means we need to verify it and potentially sync to the new chain
 			if(obj.cumulativeDifficulty = this.blockchain.getCumulativeDifficulty()) {
-				console.log(peerUrl + ' has a higher cumulative difficulty, syncing our chain');
+				console.log(peerUrl + ' has a higher cumulative difficulty, validating new chain');
 			
 				//download chain by calling blocks
 				var peerInfo = await got(peerUrl + '/blocks');
@@ -765,17 +777,13 @@ class Node {
 					}
 					console.log('done validating transactions for block ' + i);
 					
-					//recalculate the block data hash and block hash
-					//console.log('hash 1: ' + block.blockDataHash);
-					//console.log('hash 2: ' + block.createBlockDataHash());
-					
 					if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
 					if (block.blockHash !== block.createBlockHash()) throw new Error('Block ' + i + ' blockHash is invalid');
 					
-					console.log('checking block difficulty');
+					console.log('checking block difficulty for hash: ' + block.blockHash);
 					//ensure block hash mashes block difficulty - construct regex string that checks for the correct amount of leading zeros
-					let blockHashDiffTest = new RegExp('^0{${difficulty}}');
-					if (!(blockHashDiffTest.test(block.blockHash))) throw new Error('Block ' + i + 'difficulty doesnt match hash');
+					let blockHashDiffTest = new RegExp('^[0]{' + block.difficulty + '}');
+					if (!(blockHashDiffTest.test(block.blockHash))) throw new Error('Block ' + i + ' difficulty doesnt match hash');
 					
 					//validate the prevBlockHash == hash of the previous block. Doesn't need to be done for Genesis Block
 					if (i > 0) {
@@ -786,8 +794,18 @@ class Node {
 				console.log('done with block validation');
 			
 				//recalculate the cumulative difficulty of the incoming chain
+				var newCumulativeDifficulty = 0;
+				for (var i = 0; i < blocks.length; i++) {
+					newCumulativeDifficulty += 16 ** blocks[i].difficulty;
+				}
+				
 				
 				//if recalculated cumulative difficulty > current one, replace chain with incoming one
+				if (newCumulativeDifficulty >= this.blockchain.getCumulativeDifficulty()) {
+						console.log('new chain has higher cumulative difficulty, replacing our chain with the new one');
+						this.blockchain.blocks = blocks;
+				}
+				
 				
 				//clear all current mining jobs
 				
@@ -802,15 +820,100 @@ class Node {
 			} else {
 				console.log(peerUrl + ' has the same of less cumulative difficulty than us, no need to sync');
 			}
+			
+			return obj;
+			
 		} catch (error) {
 			console.log('Error during chain sync: ' + error);
 		}
 	}
 	
-	async syncPendingTransactions(peerUrl) {
+	async syncPendingTransactions(peerUrl, obj) {
+		if (obj.pendingTransactions > 0) {
+			
+			try {
+				
+				//we have pending transactions to sync, download transactions/pending
+				var pendingTrans = await got(peerUrl + '/transactions/pending');
+				console.log ('pending transactions:' + pendingTrans.body);		
 		
-		
+				var pendingTransactions = JSON.parse(pendingTrans.body);
+			
+				//append missing ones to our pendingTranasctions, ensuring no duplicates
+				for(var i = 0; i < pendingTransactions.length; i++) { 
+					pendingTransaction = pendingTransactions[i] = new Transaction(pendingTransactions[i].from,
+																				pendingTransactions[i].to,
+																				pendingTransactions[i].value,
+																				pendingTransactions[i].fee,
+																				pendingTransactions[i].dateCreated,
+																				pendingTransactions[i].data,
+																				pendingTransactions[i].senderPubKey,
+																				pendingTransactions[i].transactionDataHash,
+																				pendingTransactions[i].senderSignature);
+																				
+					//first, ensure we don't already have this transaction
+					if(this.getPendingTransaction(pendingTransaction.transactionDataHash)) {
+						console.log('Pending Transaction ' + pendingTransaction.transactionDataHash + ' already in the pool of pending trans');
+					} else {  //we don't have it, need to validate it
+				
+						//validate fields
+						//check for missing values
+						if (pendingTransaction.from == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' from is missing');
+						if (pendingTransaction.to == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash + ' to is missing');
+						if (pendingTransaction.value == null)      			throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' value is missing');
+						if (pendingTransaction.fee == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' fee is missing');
+						if (pendingTransaction.dateCreated == null)      		throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash + ' dateCreated is missing');
+						if (pendingTransaction.data == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash + ' data is missing');
+						if (pendingTransaction.senderPubKey == null)      		throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' senderPubKey is missing');
+						if (pendingTransaction.transactionDataHash == null)    throw new Error ('Pending Transaction ' + i + ' transactionDataHash is missing');
+						if (pendingTransaction.senderSignature == null)      	throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' senderSignature is missing');
+						
+						
+						//check type of values				
+						if (typeof pendingTransaction.from !== 'string' & pendingTransaction.from.length == 40)   				throw new Error('Pending Transaction ' + t + ' in Block ' + i + ' from is not a string');
+						if (typeof pendingTransaction.to !== 'string' & pendingTransaction.to.length == 40)     				throw new Error('Pending Transaction ' + t + ' in Block ' + i + ' to is not a string');
+						if (typeof pendingTransaction.data !== 'string')   			   											throw new Error('Pending Transaction ' + t + ' in Block ' + i + ' data is not a string');
+						if (typeof pendingTransaction.senderPubKey !== 'string' & pendingTransaction.senderPubKey.length == 65)	throw new Error('Pending Transaction ' + t + ' in Block ' + i + ' senderPubKey is not a string');
+						if (typeof pendingTransaction.transactionDataHash !== 'string')   										throw new Error('Pending Transaction ' + t + ' in Block ' + i + ' transactionDataHash is not a string');
 
+						if (isNaN(pendingTransaction.value))      		   throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' value is not a number');
+						if (isNaN(pendingTransaction.fee))      		   throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash  + ' fee is not a number');
+
+					
+						if (!(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(pendingTransaction.dateCreated))) throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' dateCreated is not a valid ISO format');
+						
+						
+						//validate sender sig values, should be strings and should be 2 of them
+						if (!(Array.isArray(pendingTransaction.senderSignature)) | pendingTransaction.senderSignature.length !== 2) 	 throw new Error('Transaction ' + t + ' in Block ' + i + ' sender signature is not an array of 2');
+				
+						for(let s = 0; s < pendingTransaction.senderSignature.length; s++) { 
+							var ss = pendingTransaction.senderSignature[s];
+							//check type of values				
+							if (typeof ss[s] !== 'string')   throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' Sender Signature ' + s + ' is not a valid string');
+						}
+								
+						//check sender has enough balance
+						var balance = this.getAddressBalance(pendingTransaction.from);
+						if(!(balance.confirmedBalance >= (pendingTransaction.value + pendingTransaction.fee))) 	throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' Sender does not have enough balance');
+
+						//check the signature is valid
+						if (!(utils.verifySignature(pendingTransaction.transactionDataHash, pendingTransaction.senderPubKey, pendingTransaction.senderSignature)))  throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' Transaction Signature is not valid');
+
+						console.log('pending transaction ' + pendingTransaction.transactionDataHash + ' validated');
+						this.blockchain.pendingTransactions.push(pendingTransaction);
+						console.log('pending transaction ' + pendingTransaction.transactionDataHash + ' added to pending transactions'); 
+					
+					}
+					
+				} 
+				
+				return pendingTrans;
+
+			} catch (error) {
+					console.log('Error during chain sync: ' + error);
+				}
+			
+		}
 	}
 	
 	//end point: /peers/notify-new-block
@@ -960,10 +1063,10 @@ var initHttpServer = () => {
 			
 			
 			//synchronise the chain
-			let chainSync = await node.syncChain(req.body.peerUrl);
+			let peerInfo = await node.syncChain(req.body.peerUrl);
 			
 			//synchronise the pending transactions
-			let pendingTransSync = await node.syncPendingTransactions(req.body.peerUrl);
+			let peerSyncPendingTrans = await node.syncPendingTransactions(req.body.peerUrl, peerInfo);
 			
 			res.status = 200;
 			res.json({message: 'Connected to peer: ' + req.body.peerUrl });
