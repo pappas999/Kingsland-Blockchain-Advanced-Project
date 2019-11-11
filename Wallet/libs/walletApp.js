@@ -127,8 +127,13 @@ class Wallet {
         var endpoint = nodeHost + "/address/" + this.address + "/balance/";
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function () {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-                callback(JSON.parse(xmlHttp.responseText));
+            if (xmlHttp.readyState == 4) {
+                if(xmlHttp.status == 200) {
+                    callback({'status' : 1, 'msg' : JSON.parse(xmlHttp.responseText)});
+                } else {
+                    callback({'status' : 0, 'msg' : JSON.parse(xmlHttp.responseText)});
+                }
+            }
         };
         xmlHttp.open("GET", endpoint, true); // true for asynchronous 
         xmlHttp.send(null);
@@ -137,12 +142,29 @@ class Wallet {
     sign(transaction) {
         let txnHash = CryptoJS.SHA256(JSON.stringify(transaction)).toString();
         let signature = signData(txnHash, this.privateKey);
-
-        transaction['transactionDataHash'] = txnHash;
         transaction['senderSignature'] = signature;
 
         return JSON.stringify(transaction);
 
+    }
+
+    static send(nodeHost, signedTransaction, callback) {
+        var endpoint = nodeHost +  "/transaction/send/";
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4) {
+                if(xmlHttp.status == 201) {
+                    callback({'status' : 1, 'msg' : JSON.parse(xmlHttp.responseText)});
+                } else {
+                    callback({'status' : 0, 'msg' : JSON.parse(xmlHttp.responseText)});
+                }
+            }
+        };
+        xmlHttp.open("POST", endpoint, true); // true for asynchronous
+        xmlHttp.withCredentials = false;
+        xmlHttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlHttp.setRequestHeader('Access-Control-Allow-Origin', '*');
+        xmlHttp.send(signedTransaction);
     }
 
     static createRandom(password) {

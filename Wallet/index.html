@@ -176,7 +176,7 @@
                 <button id="buttonUnlockWallet" class="btn btn-primary">Unlock</button>
             </div>
 
-            <div id="divSignAndSendTransaction">
+            <div id="divSignTransaction">
                 <div class="form-group">
                     <label for="senderAddress">Sender</label>
                     <select class="form-control" name="address" id="senderAddress"></select>
@@ -194,14 +194,19 @@
                     <input class="form-control" type="number" id="transferFee" min="10"/>
                 </div>
                 <div class="form-group">
-                    <label for="transferData">Fee:</label>
+                    <label for="transferData">Optional Data:</label>
                     <input class="form-control" type="text" id="transferData" placeholder="Optional Data"/>
                 </div>
                 <button id="buttonSignTransaction" class="btn btn-primary">Sign Transaction</button>
-
+            </div>
+            <div id="sendTransaction">
                 <div class="form-group">
                     <label for="textareaSignedTransaction">Signed Transaction</label>
                     <textarea id="textareaSignedTransaction" class="form-control signedTransaction" readonly="true"></textarea>
+                </div>  
+                <div class="form-group">
+                    <label for="nodeURLSignedTransaction">Node URL</label>
+                    <input type="text" class="form-control" id="nodeURLSignedTransaction" placeholder="Node URL">
                 </div>
                 
                 <button id="buttonSendSignedTransaction" class="btn btn-primary">Send Transaction</button>

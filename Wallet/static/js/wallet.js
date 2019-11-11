@@ -37,7 +37,8 @@ $(document).ready(function () {
     });
 
     $('#linkSendTransaction').click(function () {
-        $('#divSignAndSendTransaction').hide();
+        $('#divSignTransaction').hide();
+        $('#sendTransaction').hide();
         $('#passwordSendTransaction').val('');
         $('#transferValue').val('');
         $('#trnasferFee').val('');
@@ -61,6 +62,7 @@ $(document).ready(function () {
     $('#buttonShowAddresses').click(showAddressesAndBalances);
     $('#buttonUnlockWallet').click(unlockWalletAndDeriveAddresses);
     $('#buttonSignTransaction').click(signTransaction);
+    $('#buttonSendSignedTransaction').click(sendSignedTransaction);
 
 
     function showView(viewName) {
@@ -220,15 +222,19 @@ $(document).ready(function () {
                     let addrNode = root.derive(path);
                     let w = new Wallet(addrNode._privateKey);
     
-                    w.getBalance(nodeURL, function(balance) {
-                        div1.qrcode(wallet.address);
-                        div2.append($(`<p>Address: ${w.address}</p>
-                                       <p>Safe Balance : ${balance.safeBalance}</p>
-                                       <p>Confirmed Balance : ${balance.confirmedBalance}</p>
-                                       <p>Peinding Balance : ${balance.pendingBalance}</p>`));
-                        div.append(div1);
-                        div.append(div2);
-                        $('#divAddressesAndBalances').append(div);
+                    w.getBalance(nodeURL, function(response) {
+                        if(response.status == 1) {
+                            div1.qrcode(wallet.address);
+                            div2.append($(`<p>Address: ${w.address}</p>
+                                        <p>Safe Balance : ${response.msg.safeBalance}</p>
+                                        <p>Confirmed Balance : ${response.msg.confirmedBalance}</p>
+                                        <p>Peinding Balance : ${response.msg.pendingBalance}</p>`));
+                            div.append(div1);
+                            div.append(div2);
+                            $('#divAddressesAndBalances').append(div);
+                        } else {
+                            showError("Invalid address!");
+                        }
                     });
                 }
             }
@@ -242,7 +248,7 @@ $(document).ready(function () {
             .then(wallet => {
                 showInfo("Wallet successfully unlocked!");
                 renderAddresses(wallet);
-                $('#divSignAndSendTransaction').show();
+                $('#divSignTransaction').show();
                 $('#unlockWallet').hide();
             })
             .catch(showError)
@@ -295,29 +301,50 @@ $(document).ready(function () {
             let transaction = {
                 from : wallet.address,
                 to: recipient,
-                value : value,
-                fee: fee,
+                value : parseInt(value),
+                fee: parseInt(fee),
                 dateCreated : new Date().toISOString(),
                 data : data,
-                senderPubkey : wallet.publicKey
+                senderPubKey : wallet.publicKey
             }
             let signedTxn = wallet.sign(transaction);
             $('#textareaSignedTransaction').val(signedTxn);
+            $("#divSignTransaction").hide();
+            $("#sendTransaction").show();
+            showInfo("Successfully signed transaction!");
         } else {
             let transaction = {
                 from : wallet.address,
                 to: recipient,
-                value : value,
-                fee: fee,
+                value : parseInt(value),
+                fee: parseInt(fee),
                 dateCreated : new Date().toISOString(),
-                senderPubkey : wallet.publicKey
+                senderPubKey : wallet.publicKey
             }
             let signedTxn = wallet.sign(transaction);
             $('#textareaSignedTransaction').val(signedTxn);
+            $("#divSignTransaction").hide();
+            $("#sendTransaction").show();
+            showInfo("Successfully signed transaction!");
         }
     }
 
     function sendSignedTransaction() {
+        let signedTransaction = $("#textareaSignedTransaction").val();
+        let nodeURL = $("#nodeURLSignedTransaction").val();
+
+        if(!nodeURL)
+            return showError("Node URL required!");
+
+        Wallet.send(nodeURL, signedTransaction, function(response) {
+            if(response.status === 1) {
+                var msg = `Transaction successfully sent! Transaction Hash: ${response.msg.transactionDataHash}`;
+                $('#textareaSendTransactionResult').val(msg);
+                showInfo(`Transaction successfully sent! Transaction Hash: ${response.msg.transactionDataHash}`);
+            } else {
+                showError(response.msg.errorMsg);
+            }
+        });
 
     }
 

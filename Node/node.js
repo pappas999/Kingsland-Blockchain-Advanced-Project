@@ -4,6 +4,8 @@ var bodyParser = require('body-parser');
 var WebSocket = require("ws");
 const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
+const cors = require('cors');
+
 
 
 const utils = require('./utils');
@@ -513,8 +515,9 @@ class Node {
 			response['errorMsg'] = "Field 'senderSignature' is missing";
 			return response;
 		}
-		
-		var txn = new Transaction(txnData.from, txnData.to, txnData.value, txnData.fee, txnData.dateCreated, txnData.data, txnData.senderPubKey, txnData.senderSignature);
+
+		var txn = new Transaction(txnData.from, txnData.to, txnData.value, txnData.fee, txnData.dateCreated, txnData.data, txnData.senderPubKey, undefined, txnData.senderSignature);
+
 
 		// check for transactions
 		var txns = this.blockchain.getAllTransactions();
@@ -845,7 +848,7 @@ class MiningJob {
 var initHttpServer = () => {
 	console.log('starting server');
     var app = express();
-    app.use(bodyParser.json());
+	app.use(bodyParser.json());
 	
 	var node = new Node();
 	
@@ -1003,7 +1006,7 @@ var initHttpServer = () => {
     });
 	
 			
-			
+	app.options('*', cors());
    
     /*app.get('/peers', (req, res) => {
         res.send(sockets.map(s => s._socket.remoteAddress + ':' + s._socket.remotePort));
