@@ -52,7 +52,7 @@ class Block {
 	}
 	
 	createBlockHash() {
-        return cryptoJS.SHA256('${this.blockDataHash}|${this.dateCreated}|${this.nonce}').toString();
+        return cryptoJS.SHA256(this.blockDataHash + "|" + this.dateCreated + "|" + this.nonce).toString();
     }
 }
 
@@ -628,28 +628,27 @@ class Node {
 				for (var key in obj) {
 					if (!(obj[this.nodeId])) {
 						console.log('our peer not found in theirs, will connect');
-						await got.post(peerUrl + '/peers/connect', {
-																	peerUrl: this.selfUrl
-																});
+						const response = await got.post(peerUrl + '/peers/connect', {
+							json: true, // this is required
+							body: {
+								peerUrl: this.selfUrl
+							}
+						}); 
 					} else {
 						console.log(this.selfUrl + ' already exists in ' + obj.nodeIs + ' list of peers');
 					}
 				}
 				
-
-				//if (!(peerMap.peers[this.nodeId]))  {	                //only connect if our node URL isn't in their list of peers
-				
-				
 			} else {   //no peers on their peers list, so can connect
-			     console.log('connecting host has no peers, will connect back with URL: ' + this.selfUrl);
-				 console.log('URL for connecting back is a POST here: ' + peerUrl + '/peers/connect');
-				 await got.post(peerUrl + '/peers/connect', {
-																peerUrl: this.selfUrl
-															});
-				console.log('done with POST BACK');
-			}
-			
-         
+			     console.log('connecting host has no peers, will connect back with URL: ' + this.selfUrl);			 
+	
+				const response = await got.post(peerUrl + '/peers/connect', {
+					json: true, // this is required
+					body: {
+						peerUrl: this.selfUrl
+					}
+				}); 
+			} 
         } catch (error) {
 			console.log('Error during peer connect back: ' + error);
 		}
@@ -1064,11 +1063,16 @@ var initHttpServer = () => {
 	
 
 	app.post('/peers/connect', async(req, res) => {	
+		console.log('got a connect request:' + JSON.stringify(req.body));
 	
 		try {
 			//ensure we have a Peer URL
-			if(!req.body.peerUrl) throw new Error('peerUrl is required');
-			
+			console.log('trying a');
+			if(!req.body.peerUrl) { 
+				console.log('bad connect request');
+				throw new Error('peerUrl is required'); 
+			}
+			console.log('trying b');
 			console.log('got a peerURL request from ' + req.body.peerUrl);
 			
 			if (!(utils.validURL(req.body.peerUrl))) {
