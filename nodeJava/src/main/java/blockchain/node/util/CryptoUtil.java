@@ -12,6 +12,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 public class CryptoUtil {
     private static final Logger logger = LoggerFactory.getLogger(CryptoUtil.class);
@@ -53,7 +54,7 @@ public class CryptoUtil {
     }
 
 
-    public static String getMerkleRoot(ArrayList<Transaction> transactionArrayList) {
+    public static String getMerkleRoot(List<Transaction> transactionArrayList) {
         int count = transactionArrayList.size();
         ArrayList<String> prevTreeLayer = new ArrayList<>();
 
@@ -64,8 +65,14 @@ public class CryptoUtil {
         ArrayList<String> treeLayer = prevTreeLayer;
         while(count > 1) {
             treeLayer = new ArrayList<String>();
-            for(int i = 1; i < prevTreeLayer.size(); i++) {
+            int  i = 1;
+            for(i = 1; i < prevTreeLayer.size(); i += 2) {
                 treeLayer.add(StringUtil.sha3(prevTreeLayer.get(i-1) + prevTreeLayer.get(i)));
+            }
+
+            // for the case there is extra last item
+            if(i != prevTreeLayer.size() - 1) {
+                treeLayer.add(StringUtil.sha3(prevTreeLayer.get(prevTreeLayer.size()-1)));
             }
             count = treeLayer.size();
             prevTreeLayer = treeLayer;
