@@ -64,22 +64,4 @@ module.exports = {
 	
 		return result;
 	}
-	
-	/* [
-xah_obj_to_map(obj) convert obj to map datatype.
-Return a map instance. The variable obj is not changed.
-Only keys converted are: own property, enumerable, string keys.
-Version 2018-02-02
-] 
- xah_obj_to_map = ( obj => {
-    const mp = new Map;
-    Object.keys ( obj ). forEach (k => { mp.set(k, obj[k]) });
-    return mp;
-}),
-
- xah_map_to_obj = ( aMap => {
-    const obj = {};
-    aMap.forEach ((v,k) => { obj[k] = v });
-    return obj;
-})*/
 }
