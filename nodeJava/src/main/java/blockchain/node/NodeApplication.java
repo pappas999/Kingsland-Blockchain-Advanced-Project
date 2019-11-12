@@ -69,10 +69,10 @@ public class NodeApplication implements CommandLineRunner {
 			System.out.println("Creating and Mining Genesis block... ");
 			Block genesis = new Block("0");
 			genesis.addTransaction(genesisTransaction);
-			addBlock(genesis);
+			//addBlock(genesis);
 
 			//testing
-			Block block1 = new Block(genesis.hash);
+		/*	Block block1 = new Block(genesis.hash);
 			System.out.println("\nWalletA's balance is: " + walletA.getBalance());
 			System.out.println("\nWalletA is Attempting to send funds (40) to WalletB...");
 			block1.addTransaction(walletA.sendFunds(walletB.publicKey, 40f));
@@ -91,7 +91,7 @@ public class NodeApplication implements CommandLineRunner {
 			System.out.println("\nWalletB is Attempting to send funds (20) to WalletA...");
 			block3.addTransaction(walletB.sendFunds( walletA.publicKey, 20));
 			System.out.println("\nWalletA's balance is: " + walletA.getBalance());
-			System.out.println("WalletB's balance is: " + walletB.getBalance());
+			System.out.println("WalletB's balance is: " + walletB.getBalance());*/
 
 			//isChainValid();
 
@@ -114,73 +114,20 @@ public class NodeApplication implements CommandLineRunner {
 
 			System.out.println(blockchainJson);*/
 
-			String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
+/*			String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
 			System.out.println(blockchainJson);
 
 			if(isValidChain()) {
 				System.out.println("Chain is correct");
 			} else {
 				System.out.println("Invalid chain");
-			};
+			};*/
 		} catch (Exception e) {
 			logger.error("throw at main class" + e);
 		}
 	}
 
-	public static void runWithFewBlock() {
-		Block genesisBlock = new Block( "0");
-		System.out.println("hash first block" + genesisBlock.hash);
-		blockchain.add(genesisBlock);
-		blockchain.get(0).mineBlock(difficult);
 
-		Block secondBlock = new Block(genesisBlock.getHash());
-		System.out.println("second block" + secondBlock.getHash());
-		blockchain.add(secondBlock);
-		blockchain.get(1).mineBlock(difficult);
-
-		Block thirdBlock = new Block(secondBlock.getHash());
-		blockchain.add(thirdBlock);
-		blockchain.get(2).mineBlock(difficult);
-
-		System.out.println("third block: " + thirdBlock.getHash());
-
-		String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
-		System.out.println(blockchainJson);
-	}
-
-
-	public static Boolean isValidChain() {
-		Block currentBlock;
-		Block previousBlock;
-
-		String hashTarget = new String(new char[difficult]).replace('\0','0');
-
-		for(int i = 1; i < blockchain.size(); i++) {
-			currentBlock = blockchain.get(i);
-			previousBlock = blockchain.get(i-1);
-
-			if(! currentBlock.hash.equals(currentBlock.calculateHash())) {
-				System.out.println("current hash is not equal" + i);
-				return false;
-			}
-
-			if(! previousBlock.hash.equals(currentBlock.previousHash)) {
-				System.out.println("Current block " + i + " is not equal to previous block" + (i -1));
-				return false;
-			}
-
-			if(! currentBlock.hash.substring(0, difficult).equals(hashTarget)) {
-				System.out.println("this block hasn't been mined");
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public static void addBlock(Block newBlock) {
-		newBlock.mineBlock(difficult);
-		blockchain.add(newBlock);
-	}
 
 
 
