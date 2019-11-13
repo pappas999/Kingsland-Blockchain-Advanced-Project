@@ -11,7 +11,7 @@ public class Miner {
     public Map<String, Object> proofOfWork(Block block, int difficulty) {
         Map<String, Object> result = new HashMap<>();
         String data = block.getTimeStamp() + block.getMerkleRoot() + block.getPreviousHash() + difficulty;
-        long nonce = 0;
+        int nonce = 0;
         String nonceHash ="";
         boolean nonceFound = false;
         while(! nonceFound) {
@@ -22,6 +22,8 @@ public class Miner {
                 break;
             }
         }
+        block.setDifficulty(difficulty);
+        block.setNonce(nonce -1);
         result.put("hash", nonceHash);
         result.put("nonce", nonce);
         return result;

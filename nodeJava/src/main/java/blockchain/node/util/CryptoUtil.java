@@ -59,7 +59,7 @@ public class CryptoUtil {
         ArrayList<String> prevTreeLayer = new ArrayList<>();
 
         for(Transaction transaction: transactionArrayList) {
-            prevTreeLayer.add(transaction.transactionId);
+            prevTreeLayer.add(transaction.transactionDataHash);
         }
 
         ArrayList<String> treeLayer = prevTreeLayer;

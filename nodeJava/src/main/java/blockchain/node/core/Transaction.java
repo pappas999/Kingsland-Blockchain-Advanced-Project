@@ -3,6 +3,8 @@ package blockchain.node.core;
 import blockchain.node.NodeApplication;
 import blockchain.node.util.CryptoUtil;
 import blockchain.node.util.StringUtil;
+import org.web3j.crypto.Keys;
+import org.web3j.crypto.Sign;
 
 import javax.xml.soap.Node;
 import java.security.PrivateKey;
@@ -12,100 +14,76 @@ import java.util.ArrayList;
 
 public class Transaction {
 
-    public String transactionId;
 
-    public PublicKey sender;
+    public String from;
 
-    public PublicKey reciepient;
+    public String to;
 
     public float value;
 
-    public byte[] signature;
+    public float fee;
 
-    public ArrayList<TransactionInput> inputs = new ArrayList<>();
+    public long dateCreated;
 
-    public ArrayList<TransactionOutput> outputs = new ArrayList<>();
+    public String data;
 
-    private static int sequence = 0;
+    public  PublicKey senderPubKey;
 
-    public Transaction(PublicKey from, PublicKey to, float value, ArrayList<TransactionInput> inputs) {
-        this.sender = from;
-        this.reciepient = to;
+    public String transactionDataHash;
+
+    public Sign.SignatureData senderSiganture;
+
+    public int minedInBlockIndex = -1;
+
+    public boolean transactionSuccessful =false;
+
+
+    public Transaction(String  fromAddr, String toAddr, float value, float fee, long dateCreated, String data, PublicKey senderPubKey) {
+        this.from = fromAddr;
+        this.to = toAddr;
+
         this.value = value;
-        this.inputs = inputs;
+        this.fee = fee;
+        this.dateCreated = dateCreated;
+        this.data = data;
+        this.senderPubKey = senderPubKey;
+
     }
 
     private String calculateHash() {
-        sequence++;
-        return StringUtil.sha3(
-                CryptoUtil.getStringFromKey(sender) +
-                        CryptoUtil.getStringFromKey(reciepient) +
-                        Float.toString(value) + sequence
-        );
+        if ( this.data != null) {
+
+            return StringUtil.sha3(this.from +
+                  this.to +
+                     this.value +
+                     this.fee +
+                    this.dateCreated +
+                   this.data +
+                    this.senderPubKey.toString());
+        } else {
+            return StringUtil.sha3(this.from +
+                    this.to +
+                    this.value +
+                    this.fee +
+                    this.dateCreated +
+                    this.senderPubKey.toString());
+        }
     }
 
-    public void generateSignature(PrivateKey privateKey) {
-        String data = CryptoUtil.getStringFromKey(sender) + CryptoUtil.getStringFromKey(reciepient) + Float.toString(value);
-        this.signature = CryptoUtil.applyECDSASign(privateKey, data);
+
+    public String getTransactionDataHash() {
+        return transactionDataHash;
     }
 
-    public boolean verifySignature() {
-        String data = CryptoUtil.getStringFromKey(sender) + CryptoUtil.getStringFromKey(reciepient) + Float.toString(value);
-        return CryptoUtil.verifyECDSASign(sender, data, signature);
+    public void setTransactionDataHash(String transactionDataHash) {
+        this.transactionDataHash = transactionDataHash;
     }
 
-    public boolean processTransaction() {
-        if(verifySignature() == false) {
-            System.out.println("signature failed to verify");
-            return  false;
-        }
-
-        for (TransactionInput i : inputs) {
-            i.UTXO = NodeApplication.UTXOs.get(i.transactionOutputId);
-        }
-
-        if(getInputsValue() < NodeApplication.minimumTransaction) {
-            System.out.println("Transaction input is small: " + getInputsValue());
-            return  false;
-        }
-
-        float leftOver = getInputsValue() - value;
-
-        transactionId = calculateHash();
-        outputs.add(new TransactionOutput(this.reciepient, value, transactionId));
-        outputs.add(new TransactionOutput(this.sender, leftOver, transactionId));
-
-        for(TransactionOutput o : outputs) {
-            NodeApplication.UTXOs.put(o.id, o);
-        }
-
-        for(TransactionInput i : inputs) {
-            if(i.UTXO == null) continue;
-            NodeApplication.UTXOs.remove(i.UTXO.id);
-        }
-
-        return true;
-
-
-
-
+    public Sign.SignatureData getSenderSiganture() {
+        return senderSiganture;
     }
 
-    public float getInputsValue() {
-        float  total = 0;
-        for(TransactionInput i: inputs) {
-            if(i.UTXO == null) continue;
-            total += i.UTXO.value;
-        }
-        return total;
+    public void setSenderSiganture(Sign.SignatureData senderSiganture) {
+        this.senderSiganture = senderSiganture;
     }
-
-    public float getOutputsValue() {
-        float total = 0;
-        for(TransactionOutput o : outputs) {
-            total += o.value;
-        }
-        return total;
-    }
-
 }

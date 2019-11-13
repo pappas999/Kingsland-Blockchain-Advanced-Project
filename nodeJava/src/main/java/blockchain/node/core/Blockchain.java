@@ -24,7 +24,6 @@ public class Blockchain {
     public Blockchain(int difficulty){
 
         this.difficulty = difficulty;
-        this.blockList = this.generateGenesisBlock();
     }
 
     public Boolean isValidChain() {
@@ -49,11 +48,13 @@ public class Blockchain {
     }
 
 
+/*
 
     public Block generateGenesisBlock(){
 
     }
 
+*/
 
 
 
