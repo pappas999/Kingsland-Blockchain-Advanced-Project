@@ -225,6 +225,22 @@ class Blockchain {
 
 		return balance;
 	}
+	
+	//helper function used to validate if an address exists. Definition of an address that exists is one in a valid and confirmed or pending transaction
+	validateAddress(address) {
+		var addressFound = 0;
+		var allTransactions = this.getAllTransactions();
+				
+		for(var i = 0; i < allTransactions.length; i++) {
+			if (allTransactions[i].from === address) {
+				addressFound = 1;
+			}
+			else if (allTransactions[i].to === address) {
+				addressFound = 1;
+			}
+		}
+		return addressFound;
+	}
 }
 
 
@@ -368,12 +384,12 @@ class Node {
 		
 	}
 	
-	//end point: /debug   
+	//end point: /debug   --DONE
 	getDebug() {
 		let obj = {
 			"selfUrl" : this.selfUrl,
-			"peers" : JSON.stringify(this.peers, null, 4),          //needs fixing once implement peers
-			"chain" : this.blockchain, //return json representation of the blockchain object - needs fixing when implement miner tasks
+			"peers" : this.peers,          
+			"chain" : this.blockchain, 
 			"confirmedBalances" : this.blockchain.getConfirmedBalances() 
 		}
 		return JSON.stringify(obj,null,4);
@@ -481,13 +497,14 @@ class Node {
 	
 	//end point: /address/:address/balance            --DONE
 	getAddressBalance(address) {
-		return this.blockchain.getAddressBalance(address);
+		//check if valid address, if so return json, otherwise return error
+		if (this.blockchain.validateAddress(address) > 0) {
+			return this.blockchain.getAddressBalance(address);
+		} else {
+			return {errorMsg:  "Invalid address"}
+		}
 	}
 	
-	//end point: /debug/mine/:minerAddress/:difficulty
-	getDifficulty() {
-		
-	}
 	
 	//end point: /transactions/send
 	sendTransaction(txnData) {
@@ -629,7 +646,7 @@ class Node {
 					if (!(obj[this.nodeId])) {
 						console.log('our peer not found in theirs, will connect');
 						const response = await got.post(peerUrl + '/peers/connect', {
-							json: true, // this is required
+							json: true, 
 							body: {
 								peerUrl: this.selfUrl
 							}
@@ -643,7 +660,7 @@ class Node {
 			     console.log('connecting host has no peers, will connect back with URL: ' + this.selfUrl);			 
 	
 				const response = await got.post(peerUrl + '/peers/connect', {
-					json: true, // this is required
+					json: true, 
 					body: {
 						peerUrl: this.selfUrl
 					}
@@ -749,7 +766,7 @@ class Node {
 						if (transaction.transactionSuccessful == null)  throw new Error ('Transaction ' + t + ' in Block ' + i + ' transactionSuccessful is missing');
 						
 						
-						//check type of values				
+						//check type of values. Note Genesis Block has some exceptions where we dont need to validate		
 						if (typeof transaction.from !== 'string' & i > 0)   			   throw new Error('Transaction ' + t + ' in Block ' + i + ' from is not a string');
 						if (typeof transaction.to !== 'string' & i > 0)     			   throw new Error('Transaction ' + t + ' in Block ' + i + ' to is not a string');
 						if (typeof transaction.data !== 'string' & i > 0)   			   throw new Error('Transaction ' + t + ' in Block ' + i + ' data is not a string');
@@ -762,6 +779,7 @@ class Node {
 						if (isNaN(transaction.fee))      		   throw new Error('Transaction ' + t + ' in Block ' + i + ' fee is not a number');
 						if (isNaN(transaction.minedInBlockIndex))  throw new Error('Transaction ' + t + ' in Block ' + i + ' minedInBlockIndex is not a number');
 						
+						//validate date format for date created against ISO format RegEx
 						if (!(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(transaction.dateCreated))) throw new Error('Transaction ' + t + ' in Block ' + i + ' dateCreated is not a valid ISO format');
 						
 						
@@ -820,18 +838,16 @@ class Node {
 				if (newCumulativeDifficulty >= this.blockchain.getCumulativeDifficulty()) {
 						console.log('new chain has higher cumulative difficulty, replacing our chain with the new one');
 						this.blockchain.blocks = blocks;
+						
+						//clear all current mining jobs
+						this.blockchain.miningJobs = {};
+			
+			
+						//notify all peers about the new chain
+						console.log('chain was replaced due to peer ' + peerUrl  + ' having higher cumulative difficulty');
+						newBlockNotify();
 				}
 				
-				
-				//clear all current mining jobs
-				
-				this.blockchain.miningJobs = {};
-			
-			
-				//notify all peers about the new chain, and remove any active mining jobs
-				
-				console.log('chain was replaced due to peer ' + peerUrl  + ' having higher cumulative difficulty');
-			
 			
 			} else {
 				console.log(peerUrl + ' has the same of less cumulative difficulty than us, no need to sync');
@@ -876,12 +892,12 @@ class Node {
 						//check for missing values
 						if (pendingTransaction.from == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' from is missing');
 						if (pendingTransaction.to == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash + ' to is missing');
-						if (pendingTransaction.value == null)      			throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' value is missing');
+						if (pendingTransaction.value == null)      			    throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' value is missing');
 						if (pendingTransaction.fee == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' fee is missing');
 						if (pendingTransaction.dateCreated == null)      		throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash + ' dateCreated is missing');
 						if (pendingTransaction.data == null)      				throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash + ' data is missing');
 						if (pendingTransaction.senderPubKey == null)      		throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' senderPubKey is missing');
-						if (pendingTransaction.transactionDataHash == null)    throw new Error ('Pending Transaction ' + i + ' transactionDataHash is missing');
+						if (pendingTransaction.transactionDataHash == null)     throw new Error ('Pending Transaction ' + i + ' transactionDataHash is missing');
 						if (pendingTransaction.senderSignature == null)      	throw new Error ('Pending Transaction ' + pendingTransaction.transactionDataHash +  ' senderSignature is missing');
 						
 						
@@ -895,7 +911,7 @@ class Node {
 						if (isNaN(pendingTransaction.value))      		   throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' value is not a number');
 						if (isNaN(pendingTransaction.fee))      		   throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash  + ' fee is not a number');
 
-					
+						//Validate Transaction Date date format against ISO Regex 
 						if (!(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(pendingTransaction.dateCreated))) throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' dateCreated is not a valid ISO format');
 						
 						
@@ -926,15 +942,38 @@ class Node {
 				return pendingTrans;
 
 			} catch (error) {
-					console.log('Error during chain sync: ' + error);
+					console.log('Error during Pending Transactions Sync: ' + error);
 				}
 			
 		}
 	}
 	
-	//end point: /peers/notify-new-block
-	newBlockNotify() {
+	//end point: /debug/mine/:minerAddress/:difficulty
+	getDifficulty() {
 		
+	}
+	
+	//end point: /peers/notify-new-block      --needs testing
+	async newBlockNotify() {
+		
+		//build up json object to send to peers
+		var newBlockNotification = {
+			blocksCount: this.blockchain.blocks.length,
+			cumulativeDifficulty: this.blockchain.getCumulativeDifficulty(),
+			nodeUrl: this.selfUrl
+		};
+		
+		//now send the json to each peer on their notify new block REST endpoint
+		for (var nodeId in this.peers) {
+			var peerUrl = this.peers[nodeId];				
+			console.log('notifying peer endpoint ' + peerUrl + ' about new block');
+			const response = await got.post(peerUrl + '/peers/notify-new-block', {
+				json: true, 
+				body: {
+					newBlockNotification
+				}
+			}); 
+		}
 	}
 	
 	//end point: /mining/get-mining-job/:address
@@ -945,6 +984,8 @@ class Node {
 	//end point: /mining/submit-mined-block
 	SubmitBlock() {
 		
+		//last step is to notify peers of new block
+		newBlockNotify();
 	}
 	
 	
@@ -952,23 +993,12 @@ class Node {
 }
 
 
-class MiningJob {
-	
-}
 
-
-
-
-
-
-var initHttpServer = () => {
+var initNode = () => {
 	console.log('starting server');
     var app = express();
 	app.use(bodyParser.json());
 	
-	
-	
-	//DONE LIST
 	
 	app.get('/blocks', (req, res) => {
 		res.setHeader('Content-Type', 'application/json');
@@ -1042,11 +1072,7 @@ var initHttpServer = () => {
 		res.send(node.getTransaction(req.params.tranHash));
 	}); 
 	
-	//TODO LIST
-
-	
-	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
-			
+				
 	app.post('/transaction/send', (req, res) => {
 		var response = node.sendTransaction(req.body);
 		if(response.hasOwnProperty('transactionDataHash')) {
@@ -1060,8 +1086,6 @@ var initHttpServer = () => {
         res.send(response);
     });
 	
-	
-
 	app.post('/peers/connect', async(req, res) => {	
 		console.log('got a connect request:' + JSON.stringify(req.body));
 	
@@ -1104,7 +1128,6 @@ var initHttpServer = () => {
 		
 		res.send();
 	});
-
 	
 	app.post('/peers/notify-new-block', (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1112,6 +1135,20 @@ var initHttpServer = () => {
         node.newBlockNotify();
         res.send();
     });
+	
+	
+	//TODO LIST
+
+	
+	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
+
+	
+	
+
+	
+
+	
+
 	
 	app.get('/mining/get-mining-job/address', (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1129,14 +1166,6 @@ var initHttpServer = () => {
 			
 	app.options('*', cors());
    
-    /*app.get('/peers', (req, res) => {
-        res.send(sockets.map(s => s._socket.remoteAddress + ':' + s._socket.remotePort));
-    });
-    app.post('/addPeer', (req, res) => {
-        connectToPeers([req.body.peer]);
-        res.send();
-    });*/
-	
 	
 	const args = process.argv.slice(2);
 	var listenPort = args[1] || DEFAULT_PORT;
@@ -1149,35 +1178,8 @@ var initHttpServer = () => {
 	//command to start listening
     app.listen(listenPort, () => console.log('Listening http on port: ' + listenPort));  //check if need to get port as param and store/use
 }
+initNode();
 
-var initP2PServer = () => {
-    var server = new WebSocket.Server({port: p2p_port});
-    server.on('connection', ws => initConnection(ws));
-    console.log('listening websocket p2p port on: ' + p2p_port);
-
-};
-
-var initConnection = (ws) => {
-    sockets.push(ws);
-    initMessageHandler(ws);
-    initErrorHandler(ws);
-    write(ws, queryChainLengthMsg());
-};
-
-var connectToPeers = (newPeers) => {
-    newPeers.forEach((peer) => {
-        var ws = new WebSocket(peer);
-        ws.on('open', () => initConnection(ws));
-        ws.on('error', () => {
-            console.log('connection failed')
-        });
-    });
-};
-
-
-//connectToPeers(initialPeers);
-initHttpServer();
-//initP2PServer();
 
 
 
