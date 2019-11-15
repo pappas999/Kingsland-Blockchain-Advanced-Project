@@ -843,9 +843,9 @@ class Node {
 						this.blockchain.miningJobs = {};
 			
 			
-						//notify all peers about the new chain
+						//notify all peers about the new chain - send peerUrl so we don't notify the peer that gave  us the change
 						console.log('chain was replaced due to peer ' + peerUrl  + ' having higher cumulative difficulty');
-						newBlockNotify();
+						notifyPeersOfChanges(peerUrl);
 				}
 				
 			
@@ -954,7 +954,31 @@ class Node {
 	}
 	
 	//end point: /peers/notify-new-block      --needs testing
-	async newBlockNotify() {
+	//function to take a change from another peer and process it
+	async newBlockNotify(peerUrl) {
+		
+		try {
+			//get info from peer blocks endpoint
+			var peerBlocks = await got(peerUrl + '/blocks');
+			console.log ('peer new block notify blocks:' + peerBlocks.body);		
+		
+			var blocks = JSON.parse(peerBlocks.body);
+		
+			//set our blocks to theirs, we already know they have a higher cumulative difficulty
+			this.blockchain.blocks = blocks;
+						
+			//clear all current mining jobs
+			this.blockchain.miningJobs = {};
+			
+		} catch(error) {
+			throw new Error('Error in newBlockNotify: ' + error);
+		}	
+	}
+	
+	
+	//added optional parameter peerURL. If we got a new block notification from another peer, we don't need to broadcast it back to them
+	//if change is from our own chain , then this will be null and we will notify all peers
+	async notifyPeersOfChanges(peerUrlChangeFrom) {
 		
 		//build up json object to send to peers
 		var newBlockNotification = {
@@ -965,14 +989,16 @@ class Node {
 		
 		//now send the json to each peer on their notify new block REST endpoint
 		for (var nodeId in this.peers) {
-			var peerUrl = this.peers[nodeId];				
-			console.log('notifying peer endpoint ' + peerUrl + ' about new block');
-			const response = await got.post(peerUrl + '/peers/notify-new-block', {
-				json: true, 
-				body: {
-					newBlockNotification
-				}
-			}); 
+			var peerUrl = this.peers[nodeId];
+			if (peerUrl != peerUrlChangeFrom) {
+				console.log('notifying peer endpoint ' + peerUrl + ' about new block');
+				const response = await got.post(peerUrl + '/peers/notify-new-block', {
+					json: true, 
+					body: {
+						newBlockNotification
+					}
+				});
+			}
 		}
 	}
 	
@@ -985,7 +1011,7 @@ class Node {
 	SubmitBlock() {
 		
 		//last step is to notify peers of new block
-		newBlockNotify();
+		notifyPeersOfChanges();
 	}
 	
 	
@@ -1129,11 +1155,41 @@ var initNode = () => {
 		res.send();
 	});
 	
-	app.post('/peers/notify-new-block', (req, res) => {
+	app.post('/peers/notify-new-block', async(req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
-        node.newBlockNotify();
-        res.send();
+		
+		console.log('got a new block notification from another peer:' + JSON.stringify(req.body));
+	
+		try {
+			//ensure we have a Cumulative difficulty
+			console.log('trying a');
+			if(!req.body.cumulativeDifficulty) { 
+				console.log('bad block notification, cumulativeDifficulty not found');
+				throw new Error('bad block notification, cumulativeDifficulty not found'); 
+			}
+			
+			if (req.body.cumulativeDifficulty > this.node.blockchain.getCumulativeDifficulty()) {
+				console.log('need to add new block from peer ' + req.body.nodeUrl);
+				let info = await node.newBlockNotify(req.body.nodeUrl);		
+				
+				//notify peers a change has occured, pass in the source of the  change so we don't notify them back
+				notifyPeersOfChanges(req.body.nodeUrl);
+
+				res.status = 200;
+				res.json({message: 'Thanks for the notification: ' + req.body.nodeUrl });
+			}
+			
+		}
+		catch (error) {
+			res.status = 400;                   //bad chain or validation errors result in bad request
+			res.json({
+						message: error.message || 'Undefined Error occured, please check logs'
+					 });
+		}
+		
+		res.send();
+		
     });
 	
 	
