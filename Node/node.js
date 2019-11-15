@@ -845,7 +845,7 @@ class Node {
 			
 						//notify all peers about the new chain - send peerUrl so we don't notify the peer that gave  us the change
 						console.log('chain was replaced due to peer ' + peerUrl  + ' having higher cumulative difficulty');
-						notifyPeersOfChanges(peerUrl);
+						this.notifyPeersOfChanges(peerUrl);
 				}
 				
 			
