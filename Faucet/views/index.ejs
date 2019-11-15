@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="shortcut icon" href="/static/img/favicon.ico"/>
+
+    <link rel="stylesheet" href="/static/bootstrap4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/popper.min.js"></script>
+    <script src="/static/bootstrap4/js/bootstrap.min.js"></script>
+    <script src="/static/js/jquery.qrcode.min.js"></script>
+    <script src="/static/js/i-am-not-a-robot.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/"><%= title %></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+
+
+    <div class="container">
+      <form action='' method="POST">
+        <div class="form-group">
+          <label for="blockchainAddress">Blockchain Address</label>
+          <input type="text" class="form-control" id="blockchainAddress"  placeholder="BLockchain Address">
+        </div>
+        <div class="form-group">
+          <label for="nodeUrl">Password</label>
+          <input type="url" class="form-control" id="nodeUrl" placeholder="Node URL">
+        </div>
+        <div class="form-group">
+          <label for="antispam">Prove that you are not a robot</label>
+          <div id="antispam" class="form-control" ></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Get Coins</button>
+      </form>
+
+    </div>
+
+  <script>
+    $(document).ready(function (){
+      const game = Iamnotarobot.ticTacToe
+ 
+    const callback = () => {
+      // Usually you may want to enable a submit button here.
+      alert('You are not a robot')
+    }
+ 
+        game(document.getElementById('antispam'), callback)
+    });
+  </script>
+
+</body>
+</html>
+
