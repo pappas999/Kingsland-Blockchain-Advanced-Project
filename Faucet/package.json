@@ -16,12 +16,15 @@
     "ejs": "~2.6.1",
     "elliptic": "^6.5.1",
     "express": "~4.16.1",
+    "express-session": "^1.17.0",
     "hdkey": "^1.1.1",
     "http-errors": "~1.6.3",
     "http-server": "^0.11.1",
     "mongodb": "^3.3.4",
     "monk": "^7.1.1",
     "morgan": "~1.9.1",
-    "secure-random": "^1.1.2"
+    "save": "^2.4.0",
+    "secure-random": "^1.1.2",
+    "svg-captcha": "^1.4.0"
   }
 }

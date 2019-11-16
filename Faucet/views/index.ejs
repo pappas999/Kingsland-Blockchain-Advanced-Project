@@ -14,7 +14,6 @@
     <script src="/static/js/popper.min.js"></script>
     <script src="/static/bootstrap4/js/bootstrap.min.js"></script>
     <script src="/static/js/jquery.qrcode.min.js"></script>
-    <script src="/static/js/i-am-not-a-robot.min.js"></script>
 </head>
 
 <body>
@@ -37,27 +36,13 @@
           <input type="url" class="form-control" id="nodeUrl" placeholder="Node URL">
         </div>
         <div class="form-group">
-          <label for="antispam">Prove that you are not a robot</label>
-          <div id="antispam" class="form-control" ></div>
+          <label for="antispam">Enter Text <img src="/captcha"></label>
+          <input id="antispam" type="text" class="form-control">
         </div>
         <button type="submit" class="btn btn-primary">Get Coins</button>
       </form>
 
     </div>
-
-  <script>
-    $(document).ready(function (){
-      const game = Iamnotarobot.ticTacToe
- 
-    const callback = () => {
-      // Usually you may want to enable a submit button here.
-      alert('You are not a robot')
-    }
- 
-        game(document.getElementById('antispam'), callback)
-    });
-  </script>
-
 </body>
 </html>
 
