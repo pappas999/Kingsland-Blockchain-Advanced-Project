@@ -1,3 +1,8 @@
 body > .container {
     margin-top: 50px;
 }
+
+
+.errors {
+    color : red;
+}
