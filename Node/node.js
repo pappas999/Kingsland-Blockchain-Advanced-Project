@@ -1062,15 +1062,54 @@ class Node {
 		//update the map of mining jobs in blockchain
         this.blockchain.miningJobs[candidateBlock.blockDataHash] = candidateBlock;
 
-        console.log('Candidate block ready: ' + candidateBlock);
+        console.log('Candidate block ready: ' + JSON.stringify(candidateBlock));
         return candidateBlock;
 	}
 	
 	//end point: /mining/submit-mined-block
-	SubmitBlock() {
+	SubmitBlock(blockDataHash, dateCreated, nonce, blockHash) {
+		//find the candiate block from the Map of mining jobs
+        var block = this.blockchain.miningJobs[blockDataHash];
+        if (block === undefined) {
+            return { Error: "Mined Block not found or already mined" };
+		}
+
+        //Prepare the block
+        block.createBlockHash();
+		block.dateCreated = dateCreated;
+        block.nonce = nonce;
+
+        //Ensure Proof Of Work is valid - hash and difficulty
+        if (block.blockHash !== blockHash) {
+            return { Error: "Block hash from miner doesn't match Node" };
+		}
 		
-		//last step is to notify peers of new block
-		notifyPeersOfChanges();
+		for (var i = 0; i < block.difficulty; i++) {
+			if (block.blockHash[i] !== '0') {
+				return { Error: "Proof Of Work is incorrect. Required: " + block.difficulty + ' found: ' + i};
+			}
+		}
+
+        if (!block.Error) {
+            //add block to the blockchain
+			this.blockchain.push(block);
+			
+			//remove pending transactions			
+			for (var i = 0; i < newBlock.transactions.length; i++) {
+				for(var j = 0; j < this.blockchain.pendingTransactions.length; j++) {
+					if(this.blockchain.pendingTransactions[i].transactionDataHash === newBlock.transactions.hash) {
+						this.blockchain.pendingTransactions.splice(j, 1);
+						break; //already removed this one, no need to keep looping
+					}
+				}
+			}
+			
+			console.log("Mined a new block: " + JSON.stringify(block));
+			//Need to clear out any mining jobs
+			this.blockchain.miningJobs = {};
+		}
+		
+        return block;
 	}
 	
 	
@@ -1176,7 +1215,6 @@ var initNode = () => {
 	
 		try {
 			//ensure we have a Peer URL
-			console.log('trying a');
 			if(!req.body.peerUrl) { 
 				console.log('bad connect request');
 				throw new Error('peerUrl is required'); 
@@ -1222,7 +1260,6 @@ var initNode = () => {
 	
 		try {
 			//ensure we have a Cumulative difficulty
-			console.log('trying a');
 			if(!req.body.cumulativeDifficulty) { 
 				console.log('bad block notification, cumulativeDifficulty not found');
 				throw new Error('bad block notification, cumulativeDifficulty not found'); 
@@ -1289,12 +1326,58 @@ var initNode = () => {
 		
 	});  
 
-	app.post('/mining/submit-mined-block', (req, res) => {
+	app.post('/mining/submit-mined-block', async(req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
-        node.SubmitBlock();
-        res.send();
-    });
+        
+		console.log('got a new mined block , validating:' + JSON.stringify(req.body));
+	
+		try {
+			if(!req.body.blockDataHash) { 
+				console.log('bad mined block, "blockDataHash not found');
+				throw new Error('bad mined block, "blockDataHash not found'); 
+			}
+			if(!req.body.dateCreated) { 
+				console.log('bad mined block, "dateCreated not found');
+				throw new Error('bad mined block, "dateCreated not found'); 
+			}
+			if(!req.body.nonce) { 
+				console.log('bad mined block, "nonce not found');
+				throw new Error('bad mined block, "nonce not found'); 
+			}
+			if(!req.body.blockHash) { 
+				console.log('bad mined block, "blockHash not found');
+				throw new Error('bad mined block, "blockHash not found'); 
+			}
+			
+			let blockDataHash = req.body.blockDataHash;
+			let dateCreated = req.body.dateCreated;
+			let nonce = req.body.nonce;
+			let blockHash = req.body.blockHash;
+    
+			let result = await SubmitBlock(blockDataHash, dateCreated, nonce, blockHash);
+			if (result.Error) {
+				throw new Error(result.Error);
+			} else {
+				res.json({"Message":	'Block accepted, reward paid: ' + result.transactions[0].value + ' micro coins'});
+
+				//notify peers a change has occured, pass in the source of the  change so we don't notify them back
+				notifyPeersOfChanges();
+				res.status = 200;
+			}
+		}
+		catch (error) {
+			if (error == 'Mined Block not found or already mined') {
+				res.status = 404;
+			} else {
+				res.status = 400;                   
+			}
+			res.json({
+						message: error.message 
+			});
+			res.send();
+		}
+	});
 	
 			
 	app.options('*', cors());
