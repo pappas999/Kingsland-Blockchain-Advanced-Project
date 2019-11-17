@@ -2,14 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf7b92c3-20bf-4ee3-b920-e0a1d983048f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Blockchain.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/httpApi/minerController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/mine/Miner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/util/MinerUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/NodeApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/NodeApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Block.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Block.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/util/CryptoUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/util/CryptoUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/Wallet/Wallet.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/Wallet/Wallet.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,8 +20,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/node.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1167">
-              <caret line="136" column="23" selection-start-line="136" selection-start-column="12" selection-end-line="136" selection-end-column="23" />
+            <state relative-caret-position="600">
+              <caret line="292" column="48" lean-forward="true" selection-start-line="292" selection-start-column="48" selection-end-line="292" selection-end-column="48" />
             </state>
           </provider>
         </entry>
@@ -49,7 +44,7 @@
   <component name="ProjectFrameBounds">
     <option name="y" value="23" />
     <option name="width" value="1440" />
-    <option name="height" value="829" />
+    <option name="height" value="826" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -57,6 +52,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -68,8 +65,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -101,10 +96,9 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="829" extended-state="0" />
-    <editor active="true" />
+    <frame x="0" y="23" width="1440" height="826" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1416309" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14520743" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -133,15 +127,15 @@
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/utils.js">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/node.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1167">
-          <caret line="136" column="23" selection-start-line="136" selection-start-column="12" selection-end-line="136" selection-end-column="23" />
+        <state relative-caret-position="600">
+          <caret line="292" column="48" lean-forward="true" selection-start-line="292" selection-start-column="48" selection-end-line="292" selection-end-column="48" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils.js">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
   </component>
   <component name="masterDetails">

@@ -32,7 +32,7 @@ public class Wallet {
 
             keyGen.initialize(ecSpec, random);
 
-            KeyPair keyPair = keyGen.generateKeyPair();
+            KeyPair keyPair = keyGen. generateKeyPair();
             privateKey = keyPair.getPrivate();
             publicKey = keyPair.getPublic();
 
