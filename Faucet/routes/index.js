@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var svgCaptcha = require('svg-captcha');
-
+var FaucetTransaction = require("../libs/faucet-transaction");
 
 
 /* GET home page. */
@@ -13,17 +13,12 @@ router.get('/', function(req, res, next) {
   });
 });
 
-
+/* POST request to home page */
 router.post('/', function(req, res, next) {
   var blockchainAddress = req.body.blockchainAddress;
   var nodeUrl = req.body.nodeUrl;
   var captchaInput = req.body.captchaInput;
   var errs = {};
-
-  console.log(blockchainAddress);
-  console.log(nodeUrl);
-  console.log(captchaInput);
-  console.log(req.session.captcha);
 
   if (!blockchainAddress || !nodeUrl || !captchaInput) {
     
@@ -48,7 +43,7 @@ router.post('/', function(req, res, next) {
 
   // validate address
   var re = /[0-9A-Fa-f]{6}/g;
-  if(!re.test(blockchainAddress) || blockchainAddress.length != 20) {
+  if(!re.test(blockchainAddress) || blockchainAddress.length != 40) {
       errs.blockchainAddress = {msg : "Blockchain Address is invalid!"};
       res.render('index', {
         title: 'Faucet Application',
@@ -67,8 +62,23 @@ router.post('/', function(req, res, next) {
     });
   }
 
-  req.flash('success', 'Got coins from the faucet!');
-  res.redirect('/');
+  var txn = new FaucetTransaction(blockchainAddress);
+  txn.calculateTransactionHash();
+  txn.sign();
+  var val = txn.getTxnValue();
+
+  txn.send(nodeUrl, function (response) {
+    if(response.status === 1) {
+      req.flash('success', "Transferred " + val + " coins with transaction " + response.msg.transactionDataHash) ;
+    } else {
+      req.flash('error', 'failed to get coins :(');
+    }
+    res.render('index', { 
+      title: 'Faucet Application',
+      data: {},
+      errors: {}
+    });
+  });
 });
 
 router.get('/captcha', function (req, res) {

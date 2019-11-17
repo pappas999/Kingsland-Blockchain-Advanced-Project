@@ -319,11 +319,11 @@ class Transaction {
 
 function generateGenesisBlock() {
 		let txn = new Transaction('0000000000000000000000000000000000000000',              //from
-		                                  'f3a1e69b6176052fcc4a3248f1c5a91dea308ca9',               //to
+		                                  '8e2dab77e92b10b155ba8682146561ff45593467',               //to
 										  1000000000000,                                            //value
 										  0,														//fee
 										  '2018-01-01T00:00:00.000Z',								//date created
-										  'trusted third parties are security holes - Nick Szabo',	//data
+										  'Faucet funding',	//data
 										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
 										  undefined,                                                //transactionDataHash
 										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
