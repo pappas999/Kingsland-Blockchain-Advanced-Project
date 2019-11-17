@@ -2,6 +2,9 @@ var express = require('express');
 var router = express.Router();
 var svgCaptcha = require('svg-captcha');
 var FaucetTransaction = require("../libs/faucet-transaction");
+var cache = require('memory-cache');
+
+const ONE_HOUR_TO_MS = 60 * 60 * 1000;
 
 
 /* GET home page. */
@@ -62,23 +65,36 @@ router.post('/', function(req, res, next) {
     });
   }
 
-  var txn = new FaucetTransaction(blockchainAddress);
-  txn.calculateTransactionHash();
-  txn.sign();
-  var val = txn.getTxnValue();
-
-  txn.send(nodeUrl, function (response) {
-    if(response.status === 1) {
-      req.flash('success', "Transferred " + val + " coins with transaction " + response.msg.transactionDataHash) ;
-    } else {
-      req.flash('error', 'failed to get coins :(');
-    }
+  // now we verify if the address is spamming us or not
+  var c = cache.get(blockchainAddress);
+  if (c) {
+    req.flash('error', "Don't be greedy. You've got coins! Please try again later");
     res.render('index', { 
       title: 'Faucet Application',
       data: {},
       errors: {}
     });
-  });
+  } else {
+
+    var txn = new FaucetTransaction(blockchainAddress);
+    txn.calculateTransactionHash();
+    txn.sign();
+    var val = txn.getTxnValue();
+
+      txn.send(nodeUrl, function (response) {
+        if(response.status === 1) {
+          req.flash('success', "Transferred " + val + " coins with transaction " + response.msg.transactionDataHash);
+          cache.put(blockchainAddress, 1, ONE_HOUR_TO_MS);
+        } else {
+          req.flash('error', 'failed to get coins :(');
+        }
+        res.render('index', { 
+          title: 'Faucet Application',
+          data: {},
+          errors: {}
+        });
+      });
+  }
 });
 
 router.get('/captcha', function (req, res) {

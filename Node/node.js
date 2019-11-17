@@ -226,20 +226,15 @@ class Blockchain {
 		return balance;
 	}
 	
-	//helper function used to validate if an address exists. Definition of an address that exists is one in a valid and confirmed or pending transaction
+	//helper function used to validate if an address exists. Must validate format only.
 	validateAddress(address) {
-		var addressFound = 0;
-		var allTransactions = this.getAllTransactions();
-				
-		for(var i = 0; i < allTransactions.length; i++) {
-			if (allTransactions[i].from === address) {
-				addressFound = 1;
-			}
-			else if (allTransactions[i].to === address) {
-				addressFound = 1;
-			}
+
+		var re = /[0-9A-Fa-f]{6}/g;
+		if(!re.test(address) || address.length != 40) {
+			return 0;
 		}
-		return addressFound;
+
+		return 1;
 	}
 }
 
