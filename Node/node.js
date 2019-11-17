@@ -292,7 +292,8 @@ class Transaction {
 				dateCreated: this.dateCreated,
 				senderPubKey: this.senderPubKey,
 				transactionDataHash : this.transactionDataHash,
-				senderSignature : this.senderSignature
+				senderSignature : this.senderSignature,
+				transactionSuccessful: 'false'
 				}
 		} else {
 			var txn = {
@@ -304,7 +305,8 @@ class Transaction {
 				data : this.data,
 				senderPubKey: this.senderPubKey,
 				transactionDataHash : this.transactionDataHash,
-				senderSignature : this.senderSignature
+				senderSignature : this.senderSignature,
+				transactionSuccessful: 'false'
 			}
 		}
 
@@ -1010,17 +1012,15 @@ class Node {
             undefined,                
             ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"]			//senderSig 
 		);
-		coinbaseTransaction.confirmTransaction(this.blockchain.length); //populate minedInBlockIndex and transactionSuccessful
-        
-		var candidateTransactions = [coinbaseTransaction];    										  
-		var newBlockIndex = this.blockchain.length;
-        var prevBlock = this.blockchain[newBlockIndex - 1];
-        
-        var balances = this.getConfirmedBalances();
+		coinbaseTransaction.confirmTransaction(this.blockchain.blocks.length); //populate minedInBlockIndex and transactionSuccessful
+		
+		var candidateTransactions = [coinbaseTransaction];  	
+		var newBlockIndex = this.blockchain.blocks.length;
+        var prevBlock = this.blockchain.blocks[newBlockIndex - 1];        
+        var balances = this.blockchain.getConfirmedBalances();
 
         // order transactions from highest fee to lowest
-        var sortedPendingTransactions = this.getPendingTransactions().sort((a, b)=> b.fee - a.fee);
-
+		var sortedPendingTransactions = this.blockchain.pendingTransactions.sort((a, b)=> b.fee - a.fee);
         // Validate transaction
         for(let i = 0; i < sortedPendingTransactions.length; i++) {
             let pendingTransaction = sortedPendingTransactions[i];
@@ -1029,21 +1029,20 @@ class Node {
 			
 			//validate sender has enough funds for the transaction, else mark it as unsuccessful and dont change balances
             if(balances[pendingTransaction.from] < pendingTransaction.fee + pendingTransaction.value) {
-				pendingTransaction.transferSuccessful = false;
+				pendingTransaction.transactionSuccessful = 'false';
 			} else { //transaction looks good, complete the transaction processing
                 balances[pendingTransaction.from] -= pendingTransaction.fee + pendingTransaction.value;
 				balances[pendingTransaction.to] += pendingTransaction.value;
-                pendingTransaction.transferSuccessful = true;
+                pendingTransaction.transactionSuccessful = 'true';
 				pendingTransaction.minedInBlockIndex = newBlockIndex;
                 candidateTransactions.push(pendingTransaction);
 				coinbaseTransaction.value += pendingTransaction.fee; //update coinbase transaction value to be paid
             }
         }
-
 		//now that we've validated all transactions, finalise remaining values for coinbsae transaction
-        coinbaseTransaction.calculateDataHash();
+        coinbaseTransaction.generateTransactionHash();
 		coinbaseTransaction.minedInBlockIndex = newBlockIndex;
-        coinbaseTransaction.transferSuccessful = true;
+        coinbaseTransaction.transactionSuccessful = 'true';
         
 		//now finalise the candidate block
         let candidateBlock = new Block(
@@ -1274,6 +1273,7 @@ var initNode = () => {
 				rewardAddress: req.params.address,
 				blockDataHash: candidateBlock.blockDataHash,
 			});
+			
 			res.send();
 		}
 		catch (error) {
@@ -1282,7 +1282,9 @@ var initNode = () => {
 						message: error
 					 });
 			res.send();
+			
 		}
+		
 	});  
 
 	app.post('/mining/submit-mined-block', (req, res) => {
