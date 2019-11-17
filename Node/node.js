@@ -256,6 +256,7 @@ class Transaction {
 	
 	generateTransactionHash() {
 		if(this.data) {
+			console.log('generating hash of this with data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' + this.data + ',' + this.senderPubKey);
         	return cryptoJS.SHA256(JSON.stringify({from: this.from,
 											     to: this.to,
 											  value: this.value,
@@ -264,6 +265,7 @@ class Transaction {
 										   	   data: this.data,
 									   senderPubKey: this.senderPubKey})).toString();
 		} else {
+			console.log('generating hash of this without data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' +  this.senderPubKey);
 			return cryptoJS.SHA256(JSON.stringify({from: this.from,
 												to: this.to,
 											 value: this.value,
@@ -682,7 +684,7 @@ class Node {
 			var obj = JSON.parse(peerInfo.body);
 		
 			//Check to see if other chain has a higher cumulative difficulty, which means we need to verify it and potentially sync to the new chain
-			if(obj.cumulativeDifficulty = this.blockchain.getCumulativeDifficulty()) {
+			if(obj.cumulativeDifficulty > this.blockchain.getCumulativeDifficulty()) {
 				console.log(peerUrl + ' has a higher cumulative difficulty, validating new chain');
 			
 				//download chain by calling blocks
@@ -740,15 +742,15 @@ class Node {
 					//validate transactions in block
 					for(let t = 0; t < block.transactions.length; t++) {
 						console.log('validating transaction ' + t);
-						var transaction = block.transactions[i] = new Transaction (block.transactions[i].from,
-																				   block.transactions[i].to,
-																				   block.transactions[i].value,
-																				   block.transactions[i].fee,
-																				   block.transactions[i].dateCreated,
-																				   block.transactions[i].data,
-																				   block.transactions[i].senderPubKey,
-																				   block.transactions[i].transactionDataHash,
-																				   block.transactions[i].senderSignature);
+						var transaction = block.transactions[t] = new Transaction (block.transactions[t].from,
+																				   block.transactions[t].to,
+																				   block.transactions[t].value,
+																				   block.transactions[t].fee,
+																				   block.transactions[t].dateCreated,
+																				   block.transactions[t].data,
+																				   block.transactions[t].senderPubKey,
+																				   block.transactions[t].transactionDataHash,
+																				   block.transactions[t].senderSignature);
 
 						//check for missing values
 						if (transaction.from == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' from is missing');
@@ -791,11 +793,13 @@ class Node {
 						}
 						
 						//fields validated, now recalculate the transaction data hash 
-						if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
+						console.log('comparing these hashes1: ' + transaction.transactionDataHash);
+						console.log('comparing these hashes2: ' + transaction.generateTransactionHash());
+						//if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
 						
 						console.log('validating the signature');
-						//validate the signature - doesn't need to be done for genesis block
-						if (i > 0) {
+						//validate the signature - doesn't need to be done for genesis block or for the coinbase transaction
+						if (i > 0 & t > 0) {
 							if (!(utils.verifySignature(transaction.transactionDataHash, transaction.senderPubKey, transaction.senderSignature)))  throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Signature is not valid');
 						}
 						
@@ -809,7 +813,7 @@ class Node {
 					}
 					console.log('done validating transactions for block ' + i);
 					
-					if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
+					//if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
 					if (block.blockHash !== block.createBlockHash()) throw new Error('Block ' + i + ' blockHash is invalid');
 					
 					console.log('checking block difficulty for hash: ' + block.blockHash);
@@ -946,10 +950,6 @@ class Node {
 		}
 	}
 	
-	//end point: /debug/mine/:minerAddress/:difficulty
-	getDifficulty() {
-		
-	}
 	
 	//end point: /peers/notify-new-block      --needs testing
 	//function to take a change from another peer and process it
@@ -1092,12 +1092,12 @@ class Node {
 
         if (!block.Error) {
             //add block to the blockchain
-			this.blockchain.push(block);
+			this.blockchain.blocks.push(block);
 			
 			//remove pending transactions			
-			for (var i = 0; i < newBlock.transactions.length; i++) {
+			for (var i = 0; i < block.transactions.length; i++) {
 				for(var j = 0; j < this.blockchain.pendingTransactions.length; j++) {
-					if(this.blockchain.pendingTransactions[i].transactionDataHash === newBlock.transactions.hash) {
+					if(this.blockchain.pendingTransactions[j].transactionDataHash === block.transactions[i].transactionDataHash) {
 						this.blockchain.pendingTransactions.splice(j, 1);
 						break; //already removed this one, no need to keep looping
 					}
@@ -1112,7 +1112,43 @@ class Node {
         return block;
 	}
 	
-	
+	mineBlock(minerAddress, difficulty) {
+		// Prepare the next block for mining - need to manually adjust the difficulty temporarily and then set it back because the difficulty can be anything 
+        var savedDifficulty = this.blockchain.currentDifficulty;
+        this.blockchain.currentDifficulty = difficulty;
+        var block = this.getMiningJob(minerAddress);
+		block.dateCreated = (new Date()).toISOString();
+		//can set difficulty back to what it was now
+        this.blockchain.currentDifficulty = savedDifficulty;
+
+		//start the proof of work - loop until block hash matches difficulty
+		var nonce = 0;
+		
+		//build up a proof of work string that contains the right number of leading zeros
+		var pow = '';
+        for (let i = 0; i < difficulty; i++)
+        {
+            pow += '0';
+        }
+		
+		var blockHash = block.createBlockHash();
+		//now that we have a string of leading zeros, we can keep looping comparing the new hash to it til we have a match
+		while (!blockHash.toString().startsWith(pow)) {
+            nonce ++;
+            blockHash = cryptoJS.SHA256(block.blockDataHash + "|" + block.dateCreated + "|" + nonce);
+			
+        }
+		console.log('done with POW, nonce was ' + nonce);
+		
+		//proof of work complete, set nonce and blockhash
+        block.nonce = nonce;
+        block.blockHash = blockHash.toString();
+		
+        // Submit the mined block
+        let newBlock = this.SubmitBlock(block.blockDataHash, block.dateCreated, block.nonce, block.blockHash);
+		console.log('block debug mined ');
+        return block;
+	}
 	
 }
 
@@ -1219,7 +1255,6 @@ var initNode = () => {
 				console.log('bad connect request');
 				throw new Error('peerUrl is required'); 
 			}
-			console.log('trying b');
 			console.log('got a peerURL request from ' + req.body.peerUrl);
 			
 			if (!(utils.validURL(req.body.peerUrl))) {
@@ -1288,7 +1323,10 @@ var initNode = () => {
 		
     });
 	
-	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
+	app.get('/debug/mine/:minerAddress/:difficulty', async(req, res) => {
+		//simple debugging function , doesn't need to have fancy validations etc
+		res.send(node.mineBlock(req.params.minerAddress,req.params.difficulty)); 		
+	});
 
 	app.get('/mining/get-mining-job/:address', async (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
