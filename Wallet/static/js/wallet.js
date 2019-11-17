@@ -269,7 +269,7 @@ $(document).ready(function () {
                     let w = new Wallet(addrNode._privateKey);
                     let address = w.address;
     
-                    wallets[address] = wallet;
+                    wallets[address] = w;
                     let option = $(`<option id=${w.address}>`).text(address);
                     $("#senderAddress").append(option);
                 }
