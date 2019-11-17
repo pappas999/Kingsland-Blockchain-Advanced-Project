@@ -591,7 +591,9 @@ class Node {
 
 		response["transactionDataHash"] = txn.transactionDataHash;
 
-		return JSON.stringify(response,null,4);
+		return response;
+
+		// return JSON.stringify(response,null,4);
 	}
 	
 	//end point: /peers        --DONE, CHECK FORMATTING AFTER
