@@ -60,8 +60,8 @@ class Blockchain {
 	constructor(difficulty) {
         this.blocks = [generateGenesisBlock()];
         this.pendingTransactions = [];
-        this.currentDifficulty = 0; //store in config
-        this.miningJobs = {};
+        this.currentDifficulty = 1; //store in config
+        this.miningJobs = new Map();
     }
 	
 	//Cumulative difficulty is defined as the sum of 16 X the power of the difficulty in each block
@@ -379,7 +379,7 @@ class Node {
 			"confirmedTransactions" : this.blockchain.getConfirmedTransactionCount(), //number of confirmed transactions
 			"pendingTransactions" : this.blockchain.pendingTransactions.length   //number of pending transactions
 		}
-		//return JSON.stringify(obj,null,4);
+		return JSON.stringify(obj,null,4);
 		return obj;
 		
 	}
@@ -451,7 +451,7 @@ class Node {
 		//loop through transactions and find hash
 		for (var i = 0; i < transactions.length; i++) {
 			if (transactions[i].transactionDataHash === tranHash) {
-				return transactions[i];
+				return JSON.stringify(transactions[i],null,4);
 			}
 		}
 		
@@ -491,7 +491,7 @@ class Node {
 		//dateCreated is field to sort by, ascending
 		
 		
-		return addrTransactions.sort((a, b) => b.dateCreated - a.dateCreated);
+		return JSON.stringify(addrTransactions.sort((a, b) => b.dateCreated - a.dateCreated),null,4);
 		//const sortedActivities = activities.sort((a, b) => b.date - a.date)
 	}
 	
@@ -499,7 +499,7 @@ class Node {
 	getAddressBalance(address) {
 		//check if valid address, if so return json, otherwise return error
 		if (this.blockchain.validateAddress(address) > 0) {
-			return this.blockchain.getAddressBalance(address);
+			return JSON.stringify(this.blockchain.getAddressBalance(address),null,4);
 		} else {
 			return {errorMsg:  "Invalid address"}
 		}
@@ -594,8 +594,7 @@ class Node {
 
 		response["transactionDataHash"] = txn.transactionDataHash;
 
-		
-		return response;
+		return JSON.stringify(response,null,4);
 	}
 	
 	//end point: /peers        --DONE, CHECK FORMATTING AFTER
@@ -1003,8 +1002,72 @@ class Node {
 	}
 	
 	//end point: /mining/get-mining-job/:address
-	getMiningAddress() {
-		
+	getMiningJob(address) {
+		//first get the  coinbase transaction ready
+		var coinbaseTransaction = new Transaction(
+            '0000000000000000000000000000000000000000',       
+            address,             
+            5000000 , //static reward      
+            0,                        
+            new Date().toISOString(), 
+            "coinbase tx",            
+            '00000000000000000000000000000000000000000000000000000000000000000',        
+            undefined,                
+            ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"]			//senderSig 
+		);
+		coinbaseTransaction.confirmTransaction(this.blockchain.length); //populate minedInBlockIndex and transactionSuccessful
+        
+		var candidateTransactions = [coinbaseTransaction];    										  
+		var newBlockIndex = this.blockchain.length;
+        var prevBlock = this.blockchain[newBlockIndex - 1];
+        
+        var balances = this.getConfirmedBalances();
+
+        // order transactions from highest fee to lowest
+        var sortedPendingTransactions = this.getPendingTransactions().sort((a, b)=> b.fee - a.fee);
+
+        // Validate transaction
+        for(let i = 0; i < sortedPendingTransactions.length; i++) {
+            let pendingTransaction = sortedPendingTransactions[i];
+            balances[pendingTransaction.from] = balances[pendingTransaction.from] || 0;
+            balances[pendingTransaction.to] = balances[pendingTransaction.to] || 0;
+			
+			//validate sender has enough funds for the transaction, else mark it as unsuccessful and dont change balances
+            if(balances[pendingTransaction.from] < pendingTransaction.fee + pendingTransaction.value) {
+				pendingTransaction.transferSuccessful = false;
+			} else { //transaction looks good, complete the transaction processing
+                balances[pendingTransaction.from] -= pendingTransaction.fee + pendingTransaction.value;
+				balances[pendingTransaction.to] += pendingTransaction.value;
+                pendingTransaction.transferSuccessful = true;
+				pendingTransaction.minedInBlockIndex = newBlockIndex;
+                candidateTransactions.push(pendingTransaction);
+				coinbaseTransaction.value += pendingTransaction.fee; //update coinbase transaction value to be paid
+            }
+        }
+
+		//now that we've validated all transactions, finalise remaining values for coinbsae transaction
+        coinbaseTransaction.calculateDataHash();
+		coinbaseTransaction.minedInBlockIndex = newBlockIndex;
+        coinbaseTransaction.transferSuccessful = true;
+        
+		//now finalise the candidate block
+        let candidateBlock = new Block(
+            newBlockIndex,
+            candidateTransactions,
+            this.blockchain.currentDifficulty,
+            prevBlock.blockHash,
+            address,
+            undefined,
+            0,
+            new Date().toISOString(),
+            undefined
+        );
+
+		//update the map of mining jobs in blockchain
+        this.blockchain.miningJobs[candidateBlock.blockDataHash] = candidateBlock;
+
+        console.log('Candidate block ready: ' + candidateBlock);
+        return candidateBlock;
 	}
 	
 	//end point: /mining/submit-mined-block
@@ -1192,25 +1255,40 @@ var initNode = () => {
 		
     });
 	
-	
-	//TODO LIST
-
-	
 	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
 
-	
-	
-
-	
-
-	
-
-	
-	app.get('/mining/get-mining-job/address', (req, res) => {
+	app.get('/mining/get-mining-job/:address', async (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
-		res.send(node.getMiningAddress());
-	});  //fix params
+		
+		try {
+			//validate address first
+			if(!req.params.address) { 
+				console.log('bad get mining job request');
+				throw new Error('address is required'); 
+			}
+			console.log('preparing mining job for ' + req.params.address);
+			var candidateBlock = node.getMiningJob(req.params.address);
+			
+			//now that the blocks been prepared, return a response so the miner can start mining to find the nonce
+			res.json({
+				index: candidateBlock.index,
+				transactionsIncluded: candidateBlock.transactions.length,
+				difficulty: candidateBlock.difficulty,
+				expectedReward: candidateBlock.transactions[0].value,
+				rewardAddress: req.params.address,
+				blockDataHash: candidateBlock.blockDataHash,
+			});
+			res.send();
+		}
+		catch (error) {
+			res.status = 400;                   
+			res.json({
+						message: error
+					 });
+			res.send();
+		}
+	});  
 
 	app.post('/mining/submit-mined-block', (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
