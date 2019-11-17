@@ -226,20 +226,15 @@ class Blockchain {
 		return balance;
 	}
 	
-	//helper function used to validate if an address exists. Definition of an address that exists is one in a valid and confirmed or pending transaction
+	//helper function used to validate if an address exists. Must validate format only.
 	validateAddress(address) {
-		var addressFound = 0;
-		var allTransactions = this.getAllTransactions();
-				
-		for(var i = 0; i < allTransactions.length; i++) {
-			if (allTransactions[i].from === address) {
-				addressFound = 1;
-			}
-			else if (allTransactions[i].to === address) {
-				addressFound = 1;
-			}
+
+		var re = /[0-9A-Fa-f]{6}/g;
+		if(!re.test(address) || address.length != 40) {
+			return 0;
 		}
-		return addressFound;
+
+		return 1;
 	}
 }
 
@@ -319,11 +314,11 @@ class Transaction {
 
 function generateGenesisBlock() {
 		let txn = new Transaction('0000000000000000000000000000000000000000',              //from
-		                                  'f3a1e69b6176052fcc4a3248f1c5a91dea308ca9',               //to
+		                                  '8e2dab77e92b10b155ba8682146561ff45593467',               //to
 										  1000000000000,                                            //value
 										  0,														//fee
 										  '2018-01-01T00:00:00.000Z',								//date created
-										  'trusted third parties are security holes - Nick Szabo',	//data
+										  'Faucet funding',	//data
 										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
 										  undefined,                                                //transactionDataHash
 										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig

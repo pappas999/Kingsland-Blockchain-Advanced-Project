@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "aes-js": "^3.1.2",
-    "axios": "^0.19.0",
     "bip32": "^2.0.4",
     "bip39": "^3.0.2",
     "cookie-parser": "~1.4.4",
@@ -21,11 +20,13 @@
     "hdkey": "^1.1.1",
     "http-errors": "~1.6.3",
     "http-server": "^0.11.1",
+    "memory-cache": "^0.2.0",
     "mongodb": "^3.3.4",
     "monk": "^7.1.1",
     "morgan": "~1.9.1",
     "save": "^2.4.0",
     "secure-random": "^1.1.2",
-    "svg-captcha": "^1.4.0"
+    "svg-captcha": "^1.4.0",
+    "xmlhttprequest": "^1.8.0"
   }
 }
