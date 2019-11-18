@@ -60,8 +60,8 @@ class Blockchain {
 	constructor(difficulty) {
         this.blocks = [generateGenesisBlock()];
         this.pendingTransactions = [];
-        this.currentDifficulty = 0; //store in config
-        this.miningJobs = {};
+        this.currentDifficulty = 1; //store in config
+        this.miningJobs = new Map();
     }
 	
 	//Cumulative difficulty is defined as the sum of 16 X the power of the difficulty in each block
@@ -256,6 +256,7 @@ class Transaction {
 	
 	generateTransactionHash() {
 		if(this.data) {
+			console.log('generating hash of this with data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' + this.data + ',' + this.senderPubKey);
         	return cryptoJS.SHA256(JSON.stringify({from: this.from,
 											     to: this.to,
 											  value: this.value,
@@ -264,6 +265,7 @@ class Transaction {
 										   	   data: this.data,
 									   senderPubKey: this.senderPubKey})).toString();
 		} else {
+			console.log('generating hash of this without data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' +  this.senderPubKey);
 			return cryptoJS.SHA256(JSON.stringify({from: this.from,
 												to: this.to,
 											 value: this.value,
@@ -292,7 +294,8 @@ class Transaction {
 				dateCreated: this.dateCreated,
 				senderPubKey: this.senderPubKey,
 				transactionDataHash : this.transactionDataHash,
-				senderSignature : this.senderSignature
+				senderSignature : this.senderSignature,
+				transactionSuccessful: 'false'
 				}
 		} else {
 			var txn = {
@@ -304,7 +307,8 @@ class Transaction {
 				data : this.data,
 				senderPubKey: this.senderPubKey,
 				transactionDataHash : this.transactionDataHash,
-				senderSignature : this.senderSignature
+				senderSignature : this.senderSignature,
+				transactionSuccessful: 'false'
 			}
 		}
 
@@ -374,7 +378,7 @@ class Node {
 			"confirmedTransactions" : this.blockchain.getConfirmedTransactionCount(), //number of confirmed transactions
 			"pendingTransactions" : this.blockchain.pendingTransactions.length   //number of pending transactions
 		}
-		//return JSON.stringify(obj,null,4);
+		return JSON.stringify(obj,null,4);
 		return obj;
 		
 	}
@@ -446,7 +450,7 @@ class Node {
 		//loop through transactions and find hash
 		for (var i = 0; i < transactions.length; i++) {
 			if (transactions[i].transactionDataHash === tranHash) {
-				return transactions[i];
+				return JSON.stringify(transactions[i],null,4);
 			}
 		}
 		
@@ -486,7 +490,7 @@ class Node {
 		//dateCreated is field to sort by, ascending
 		
 		
-		return addrTransactions.sort((a, b) => b.dateCreated - a.dateCreated);
+		return JSON.stringify(addrTransactions.sort((a, b) => b.dateCreated - a.dateCreated),null,4);
 		//const sortedActivities = activities.sort((a, b) => b.date - a.date)
 	}
 	
@@ -494,7 +498,7 @@ class Node {
 	getAddressBalance(address) {
 		//check if valid address, if so return json, otherwise return error
 		if (this.blockchain.validateAddress(address) > 0) {
-			return this.blockchain.getAddressBalance(address);
+			return JSON.stringify(this.blockchain.getAddressBalance(address),null,4);
 		} else {
 			return {errorMsg:  "Invalid address"}
 		}
@@ -589,8 +593,9 @@ class Node {
 
 		response["transactionDataHash"] = txn.transactionDataHash;
 
-		
 		return response;
+
+		// return JSON.stringify(response,null,4);
 	}
 	
 	//end point: /peers        --DONE, CHECK FORMATTING AFTER
@@ -679,7 +684,7 @@ class Node {
 			var obj = JSON.parse(peerInfo.body);
 		
 			//Check to see if other chain has a higher cumulative difficulty, which means we need to verify it and potentially sync to the new chain
-			if(obj.cumulativeDifficulty = this.blockchain.getCumulativeDifficulty()) {
+			if(obj.cumulativeDifficulty > this.blockchain.getCumulativeDifficulty()) {
 				console.log(peerUrl + ' has a higher cumulative difficulty, validating new chain');
 			
 				//download chain by calling blocks
@@ -737,15 +742,15 @@ class Node {
 					//validate transactions in block
 					for(let t = 0; t < block.transactions.length; t++) {
 						console.log('validating transaction ' + t);
-						var transaction = block.transactions[i] = new Transaction (block.transactions[i].from,
-																				   block.transactions[i].to,
-																				   block.transactions[i].value,
-																				   block.transactions[i].fee,
-																				   block.transactions[i].dateCreated,
-																				   block.transactions[i].data,
-																				   block.transactions[i].senderPubKey,
-																				   block.transactions[i].transactionDataHash,
-																				   block.transactions[i].senderSignature);
+						var transaction = block.transactions[t] = new Transaction (block.transactions[t].from,
+																				   block.transactions[t].to,
+																				   block.transactions[t].value,
+																				   block.transactions[t].fee,
+																				   block.transactions[t].dateCreated,
+																				   block.transactions[t].data,
+																				   block.transactions[t].senderPubKey,
+																				   block.transactions[t].transactionDataHash,
+																				   block.transactions[t].senderSignature);
 
 						//check for missing values
 						if (transaction.from == null)      				throw new Error ('Transaction ' + t + ' in Block ' + i + ' from is missing');
@@ -788,11 +793,13 @@ class Node {
 						}
 						
 						//fields validated, now recalculate the transaction data hash 
-						if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
+						console.log('comparing these hashes1: ' + transaction.transactionDataHash);
+						console.log('comparing these hashes2: ' + transaction.generateTransactionHash());
+						//if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
 						
 						console.log('validating the signature');
-						//validate the signature - doesn't need to be done for genesis block
-						if (i > 0) {
+						//validate the signature - doesn't need to be done for genesis block or for the coinbase transaction
+						if (i > 0 & t > 0) {
 							if (!(utils.verifySignature(transaction.transactionDataHash, transaction.senderPubKey, transaction.senderSignature)))  throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Signature is not valid');
 						}
 						
@@ -806,7 +813,7 @@ class Node {
 					}
 					console.log('done validating transactions for block ' + i);
 					
-					if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
+					//if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
 					if (block.blockHash !== block.createBlockHash()) throw new Error('Block ' + i + ' blockHash is invalid');
 					
 					console.log('checking block difficulty for hash: ' + block.blockHash);
@@ -943,10 +950,6 @@ class Node {
 		}
 	}
 	
-	//end point: /debug/mine/:minerAddress/:difficulty
-	getDifficulty() {
-		
-	}
 	
 	//end point: /peers/notify-new-block      --needs testing
 	//function to take a change from another peer and process it
@@ -998,18 +1001,154 @@ class Node {
 	}
 	
 	//end point: /mining/get-mining-job/:address
-	getMiningAddress() {
+	getMiningJob(address) {
+		//first get the  coinbase transaction ready
+		var coinbaseTransaction = new Transaction(
+            '0000000000000000000000000000000000000000',       
+            address,             
+            5000000 , //static reward      
+            0,                        
+            new Date().toISOString(), 
+            "coinbase tx",            
+            '00000000000000000000000000000000000000000000000000000000000000000',        
+            undefined,                
+            ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"]			//senderSig 
+		);
+		coinbaseTransaction.confirmTransaction(this.blockchain.blocks.length); //populate minedInBlockIndex and transactionSuccessful
 		
+		var candidateTransactions = [coinbaseTransaction];  	
+		var newBlockIndex = this.blockchain.blocks.length;
+        var prevBlock = this.blockchain.blocks[newBlockIndex - 1];        
+        var balances = this.blockchain.getConfirmedBalances();
+
+        // order transactions from highest fee to lowest
+		var sortedPendingTransactions = this.blockchain.pendingTransactions.sort((a, b)=> b.fee - a.fee);
+        // Validate transaction
+        for(let i = 0; i < sortedPendingTransactions.length; i++) {
+            let pendingTransaction = sortedPendingTransactions[i];
+            balances[pendingTransaction.from] = balances[pendingTransaction.from] || 0;
+            balances[pendingTransaction.to] = balances[pendingTransaction.to] || 0;
+			
+			//validate sender has enough funds for the transaction, else mark it as unsuccessful and dont change balances
+            if(balances[pendingTransaction.from] < pendingTransaction.fee + pendingTransaction.value) {
+				pendingTransaction.transactionSuccessful = 'false';
+			} else { //transaction looks good, complete the transaction processing
+                balances[pendingTransaction.from] -= pendingTransaction.fee + pendingTransaction.value;
+				balances[pendingTransaction.to] += pendingTransaction.value;
+                pendingTransaction.transactionSuccessful = 'true';
+				pendingTransaction.minedInBlockIndex = newBlockIndex;
+                candidateTransactions.push(pendingTransaction);
+				coinbaseTransaction.value += pendingTransaction.fee; //update coinbase transaction value to be paid
+            }
+        }
+		//now that we've validated all transactions, finalise remaining values for coinbsae transaction
+        coinbaseTransaction.generateTransactionHash();
+		coinbaseTransaction.minedInBlockIndex = newBlockIndex;
+        coinbaseTransaction.transactionSuccessful = 'true';
+        
+		//now finalise the candidate block
+        let candidateBlock = new Block(
+            newBlockIndex,
+            candidateTransactions,
+            this.blockchain.currentDifficulty,
+            prevBlock.blockHash,
+            address,
+            undefined,
+            0,
+            new Date().toISOString(),
+            undefined
+        );
+
+		//update the map of mining jobs in blockchain
+        this.blockchain.miningJobs[candidateBlock.blockDataHash] = candidateBlock;
+
+        console.log('Candidate block ready: ' + JSON.stringify(candidateBlock));
+        return candidateBlock;
 	}
 	
 	//end point: /mining/submit-mined-block
-	SubmitBlock() {
+	SubmitBlock(blockDataHash, dateCreated, nonce, blockHash) {
+		//find the candiate block from the Map of mining jobs
+        var block = this.blockchain.miningJobs[blockDataHash];
+        if (block === undefined) {
+            return { Error: "Mined Block not found or already mined" };
+		}
+
+        //Prepare the block
+        block.createBlockHash();
+		block.dateCreated = dateCreated;
+        block.nonce = nonce;
+
+        //Ensure Proof Of Work is valid - hash and difficulty
+        if (block.blockHash !== blockHash) {
+            return { Error: "Block hash from miner doesn't match Node" };
+		}
 		
-		//last step is to notify peers of new block
-		notifyPeersOfChanges();
+		for (var i = 0; i < block.difficulty; i++) {
+			if (block.blockHash[i] !== '0') {
+				return { Error: "Proof Of Work is incorrect. Required: " + block.difficulty + ' found: ' + i};
+			}
+		}
+
+        if (!block.Error) {
+            //add block to the blockchain
+			this.blockchain.blocks.push(block);
+			
+			//remove pending transactions			
+			for (var i = 0; i < block.transactions.length; i++) {
+				for(var j = 0; j < this.blockchain.pendingTransactions.length; j++) {
+					if(this.blockchain.pendingTransactions[j].transactionDataHash === block.transactions[i].transactionDataHash) {
+						this.blockchain.pendingTransactions.splice(j, 1);
+						break; //already removed this one, no need to keep looping
+					}
+				}
+			}
+			
+			console.log("Mined a new block: " + JSON.stringify(block));
+			//Need to clear out any mining jobs
+			this.blockchain.miningJobs = {};
+		}
+		
+        return block;
 	}
 	
-	
+	mineBlock(minerAddress, difficulty) {
+		// Prepare the next block for mining - need to manually adjust the difficulty temporarily and then set it back because the difficulty can be anything 
+        var savedDifficulty = this.blockchain.currentDifficulty;
+        this.blockchain.currentDifficulty = difficulty;
+        var block = this.getMiningJob(minerAddress);
+		block.dateCreated = (new Date()).toISOString();
+		//can set difficulty back to what it was now
+        this.blockchain.currentDifficulty = savedDifficulty;
+
+		//start the proof of work - loop until block hash matches difficulty
+		var nonce = 0;
+		
+		//build up a proof of work string that contains the right number of leading zeros
+		var pow = '';
+        for (let i = 0; i < difficulty; i++)
+        {
+            pow += '0';
+        }
+		
+		var blockHash = block.createBlockHash();
+		//now that we have a string of leading zeros, we can keep looping comparing the new hash to it til we have a match
+		while (!blockHash.toString().startsWith(pow)) {
+            nonce ++;
+            blockHash = cryptoJS.SHA256(block.blockDataHash + "|" + block.dateCreated + "|" + nonce);
+			
+        }
+		console.log('done with POW, nonce was ' + nonce);
+		
+		//proof of work complete, set nonce and blockhash
+        block.nonce = nonce;
+        block.blockHash = blockHash.toString();
+		
+        // Submit the mined block
+        let newBlock = this.SubmitBlock(block.blockDataHash, block.dateCreated, block.nonce, block.blockHash);
+		console.log('block debug mined ');
+        return block;
+	}
 	
 }
 
@@ -1112,12 +1251,10 @@ var initNode = () => {
 	
 		try {
 			//ensure we have a Peer URL
-			console.log('trying a');
 			if(!req.body.peerUrl) { 
 				console.log('bad connect request');
 				throw new Error('peerUrl is required'); 
 			}
-			console.log('trying b');
 			console.log('got a peerURL request from ' + req.body.peerUrl);
 			
 			if (!(utils.validURL(req.body.peerUrl))) {
@@ -1158,7 +1295,6 @@ var initNode = () => {
 	
 		try {
 			//ensure we have a Cumulative difficulty
-			console.log('trying a');
 			if(!req.body.cumulativeDifficulty) { 
 				console.log('bad block notification, cumulativeDifficulty not found');
 				throw new Error('bad block notification, cumulativeDifficulty not found'); 
@@ -1187,32 +1323,99 @@ var initNode = () => {
 		
     });
 	
-	
-	//TODO LIST
+	app.get('/debug/mine/:minerAddress/:difficulty', async(req, res) => {
+		//simple debugging function , doesn't need to have fancy validations etc
+		res.send(node.mineBlock(req.params.minerAddress,req.params.difficulty)); 		
+	});
 
-	
-	app.get('/debug/mine/minerAddress/difficulty', (req, res) => res.send(node.getDifficulty()));  //fix params
-
-	
-	
-
-	
-
-	
-
-	
-	app.get('/mining/get-mining-job/address', (req, res) => {
+	app.get('/mining/get-mining-job/:address', async (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
-		res.send(node.getMiningAddress());
-	});  //fix params
+		
+		try {
+			//validate address first
+			if(!req.params.address) { 
+				console.log('bad get mining job request');
+				throw new Error('address is required'); 
+			}
+			console.log('preparing mining job for ' + req.params.address);
+			var candidateBlock = node.getMiningJob(req.params.address);
+			
+			//now that the blocks been prepared, return a response so the miner can start mining to find the nonce
+			res.json({
+				index: candidateBlock.index,
+				transactionsIncluded: candidateBlock.transactions.length,
+				difficulty: candidateBlock.difficulty,
+				expectedReward: candidateBlock.transactions[0].value,
+				rewardAddress: req.params.address,
+				blockDataHash: candidateBlock.blockDataHash,
+			});
+			
+			res.send();
+		}
+		catch (error) {
+			res.status = 400;                   
+			res.json({
+						message: error
+					 });
+			res.send();
+			
+		}
+		
+	});  
 
-	app.post('/mining/submit-mined-block', (req, res) => {
+	app.post('/mining/submit-mined-block', async(req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
-        node.SubmitBlock();
-        res.send();
-    });
+        
+		console.log('got a new mined block , validating:' + JSON.stringify(req.body));
+	
+		try {
+			if(!req.body.blockDataHash) { 
+				console.log('bad mined block, "blockDataHash not found');
+				throw new Error('bad mined block, "blockDataHash not found'); 
+			}
+			if(!req.body.dateCreated) { 
+				console.log('bad mined block, "dateCreated not found');
+				throw new Error('bad mined block, "dateCreated not found'); 
+			}
+			if(!req.body.nonce) { 
+				console.log('bad mined block, "nonce not found');
+				throw new Error('bad mined block, "nonce not found'); 
+			}
+			if(!req.body.blockHash) { 
+				console.log('bad mined block, "blockHash not found');
+				throw new Error('bad mined block, "blockHash not found'); 
+			}
+			
+			let blockDataHash = req.body.blockDataHash;
+			let dateCreated = req.body.dateCreated;
+			let nonce = req.body.nonce;
+			let blockHash = req.body.blockHash;
+    
+			let result = await SubmitBlock(blockDataHash, dateCreated, nonce, blockHash);
+			if (result.Error) {
+				throw new Error(result.Error);
+			} else {
+				res.json({"Message":	'Block accepted, reward paid: ' + result.transactions[0].value + ' micro coins'});
+
+				//notify peers a change has occured, pass in the source of the  change so we don't notify them back
+				notifyPeersOfChanges();
+				res.status = 200;
+			}
+		}
+		catch (error) {
+			if (error == 'Mined Block not found or already mined') {
+				res.status = 404;
+			} else {
+				res.status = 400;                   
+			}
+			res.json({
+						message: error.message 
+			});
+			res.send();
+		}
+	});
 	
 			
 	app.options('*', cors());
