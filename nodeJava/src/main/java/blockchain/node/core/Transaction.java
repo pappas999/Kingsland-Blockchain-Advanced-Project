@@ -7,6 +7,7 @@ import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
 
 import javax.xml.soap.Node;
+import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
@@ -27,7 +28,7 @@ public class Transaction {
 
     public String data;
 
-    public  PublicKey senderPubKey;
+    public BigInteger senderPubKey;
 
     public String transactionDataHash;
 
@@ -38,7 +39,7 @@ public class Transaction {
     public boolean transactionSuccessful =false;
 
 
-    public Transaction(String  fromAddr, String toAddr, float value, float fee, long dateCreated, String data, PublicKey senderPubKey) {
+    public Transaction(String  fromAddr, String toAddr, float value, float fee, long dateCreated, String data, BigInteger senderPubKey) {
         this.from = fromAddr;
         this.to = toAddr;
 

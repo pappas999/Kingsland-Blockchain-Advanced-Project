@@ -2,6 +2,8 @@ package blockchain.node.util;
 
 import blockchain.node.NodeApplication;
 import blockchain.node.core.Transaction;
+import org.bouncycastle.jcajce.provider.digest.SHA3;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.Sign;
@@ -79,6 +81,15 @@ public class CryptoUtil {
         }
         String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) :"";
         return merkleRoot;
+    }
+
+
+    public static String getSHA3Hash(String input) {
+
+        SHA3.DigestSHA3 digestSHA3 = new SHA3.Digest256();
+        digestSHA3.update(input.getBytes());
+        String digestMessage = Hex.toHexString(digestSHA3.digest());
+        return  digestMessage;
     }
 
 

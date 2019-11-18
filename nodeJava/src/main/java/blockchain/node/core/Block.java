@@ -104,7 +104,7 @@ public class Block {
     }
 
 
-    public boolean addTransaction(Transaction transaction) {
+   /* public boolean addTransaction(Transaction transaction) {
         if(transaction == null) return false;
 
         if(previousHash != "0") {
@@ -116,7 +116,7 @@ public class Block {
         transactions.add(transaction);
         logger.info("transaction successfully added to block");
         return true;
-    }
+    }*/
 
 
     public String getMerkelRoot() {

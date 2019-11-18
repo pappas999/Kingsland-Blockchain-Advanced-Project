@@ -11,12 +11,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 @SpringBootApplication
+@ComponentScan
 public class NodeApplication implements CommandLineRunner {
 	private static final Logger logger = LoggerFactory.getLogger(NodeApplication.class);
 
@@ -32,7 +34,6 @@ public class NodeApplication implements CommandLineRunner {
 
 
 
-
 	public static void main(String[] args) {
 		SpringApplication.run(NodeApplication.class, args);
 	}
@@ -40,7 +41,8 @@ public class NodeApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		try{
-			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+			logger.info("start runing");
+			/*Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
 			Wallet wallet = new Wallet();
 			Wallet wallet1 = new Wallet();
@@ -68,7 +70,7 @@ public class NodeApplication implements CommandLineRunner {
 
 			System.out.println("Creating and Mining Genesis block... ");
 			Block genesis = new Block("0");
-			genesis.addTransaction(genesisTransaction);
+			genesis.addTransaction(genesisTransaction);*/
 			//addBlock(genesis);
 
 			//testing

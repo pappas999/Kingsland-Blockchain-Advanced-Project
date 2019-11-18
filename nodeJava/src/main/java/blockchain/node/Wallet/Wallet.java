@@ -56,7 +56,7 @@ public class Wallet {
     }
 
 
-    public Transaction sendFunds(PublicKey _recipient, float value) {
+   /* public Transaction sendFunds(PublicKey _recipient, float value) {
         if(getBalance() < value) {
             System.out.println("not enough money");
             return null;
@@ -79,7 +79,7 @@ public class Wallet {
         }
 
         return newTransaction;
-    }
+    }*/
 
 
 
