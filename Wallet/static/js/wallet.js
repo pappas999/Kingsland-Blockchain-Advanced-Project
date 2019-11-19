@@ -10,12 +10,16 @@ $(document).ready(function () {
 
     $('#linkHome').click(function () {
         showView("viewHome");
+        $('.nav-item').removeClass('active');
+        $(this).parent().addClass("active");
     });
 
     $('#linkCreateNewWallet').click(function () {
         $('#passwordCreateWallet').val('');
         $('#textareaCreateWalletResult').val('');
         showView("viewCreateNewWallet");
+        $('.nav-item').removeClass('active');
+        $(this).parent().addClass("active");
     });
 
     $('#linkImportWalletFromMnemonic').click(function () {
@@ -23,17 +27,23 @@ $(document).ready(function () {
         $('#passwordOpenWallet').val('');
         $('#textareaOpenWalletResult').val('');
         showView("viewOpenWalletFromMnemonic");
+        $('.nav-item').removeClass('active');
+        $(this).parent().addClass("active");
     });
 
     $('#linkShowMnemonic').click(function () {
         $('#passwordShowMnemonic').val('');
         showView("viewShowMnemonic");
+        $('.nav-item').removeClass('active');
+        $(this).parent().addClass("active");
     });
 
     $('#linkShowAddressesAndBalances').click(function () {
         $('#passwordShowAddresses').val('');
         $('#divAddressesAndBalances').empty();
         showView("viewShowAddressesAndBalances");
+        $('.nav-item').removeClass('active');
+        $(this).parent().addClass("active");
     });
 
     $('#linkSendTransaction').click(function () {
@@ -50,6 +60,8 @@ $(document).ready(function () {
         $('#textareaSendTransactionResult').val('');
 
         showView("viewSendTransaction");
+        $('.nav-item').removeClass('active');
+        $(this).parent().addClass("active");
     });
 
     $('#linkDelete').click(deleteWallet);
@@ -90,7 +102,7 @@ $(document).ready(function () {
         }
     }
 
-    
+
     function showInfo(message) {
         $('#infoBox > span').html(message);
         $('#infoBox').show();
@@ -150,7 +162,7 @@ $(document).ready(function () {
 
     function generateNewWallet() {
         let password = $('#passwordCreateWallet').val();
-        let wallet = Wallet.createRandom(password);
+        let wallet = Wallet.createRandom();
 
         if(password === '')
             return showError("Invalid password");
@@ -173,10 +185,12 @@ $(document).ready(function () {
         if(password === '')
             return showError("Invalid password");
 
-        let wallet = Wallet.fromMnemonic(mnemonic, password);
+        let wallet = Wallet.fromMnemonic(mnemonic);
 
         encryptAndSaveJSON(wallet, password)
         .then(() => {
+            $('#passwordOpenWallet').val("");
+            $('#textareaOpenWallet').val("");
             showInfo("Wallet successfully loaded");
             $('#textareaOpenWalletResult').val(localStorage.JSON);
         })
@@ -210,10 +224,12 @@ $(document).ready(function () {
 
             function renderAddressesAndBalances(wallet) {
                 $('#divAddressesAndBalances').empty();
+                $('#passwordShowAddresses').val("");
+                $('#nodeURLShowAddresses').val("");
 
-                let seed = bip39.mnemonicToSeedSync(wallet.mnemonic, password);
+                let seed = bip39.mnemonicToSeedSync(wallet.mnemonic);
                 let root = hdkey.fromMasterSeed(seed);
-    
+
                 for(var i = 0; i < 5; i++) {
                     let div = $('<div class="row">');
                     let div1 = $('<div class="col col-4">');
@@ -221,14 +237,14 @@ $(document).ready(function () {
                     let path = "m/44'/0'/0'/0/" + i;
                     let addrNode = root.derive(path);
                     let w = new Wallet(addrNode._privateKey);
-    
+
                     w.getBalance(nodeURL, function(response) {
                         if(response.status == 1) {
                             div1.qrcode(wallet.address);
                             div2.append($(`<p>Address: ${w.address}</p>
-                                        <p>Safe Balance : ${response.msg.safeBalance}</p>
-                                        <p>Confirmed Balance : ${response.msg.confirmedBalance}</p>
-                                        <p>Peinding Balance : ${response.msg.pendingBalance}</p>`));
+                                        <p>Safe Balance : ${response.msg.safeBalance/1000000} coins (${response.msg.safeBalance} micro-coins)</p>
+                                        <p>Confirmed Balance : ${response.msg.confirmedBalance/1000000} coins (${response.msg.confirmedBalance} micro-coins) </p>
+                                        <p>Pending Balance : ${response.msg.pendingBalance/1000000} coins (${response.msg.pendingBalance} micro-coins) </p>`));
                             div.append(div1);
                             div.append(div2);
                             $('#divAddressesAndBalances').append(div);
@@ -250,6 +266,7 @@ $(document).ready(function () {
                 renderAddresses(wallet);
                 $('#divSignTransaction').show();
                 $('#unlockWallet').hide();
+                $('#passwordSendTransaction').val("");
             })
             .catch(showError)
             .finally(() => {
@@ -259,16 +276,16 @@ $(document).ready(function () {
 
             function renderAddresses(wallet) {
                 $('#divAddressesAndBalances').empty();
-    
-                let seed = bip39.mnemonicToSeedSync(wallet.mnemonic, password);
+
+                let seed = bip39.mnemonicToSeedSync(wallet.mnemonic);
                 let root = hdkey.fromMasterSeed(seed);
-    
+
                 for(let i = 0; i < 5; i++) {
                     let path = "m/44'/0'/0'/0/" + i;
                     let addrNode = root.derive(path);
                     let w = new Wallet(addrNode._privateKey);
                     let address = w.address;
-    
+
                     wallets[address] = w;
                     let option = $(`<option id=${w.address}>`).text(address);
                     $("#senderAddress").append(option);
@@ -296,6 +313,9 @@ $(document).ready(function () {
             return showError("Invalid transfer free");
 
         let data = $("#transferData").val();
+
+        if(parseInt(fee) < 10)
+            return showError("Minimum fee is 10 micro-coins!");
 
         if(data && data !="") {
             let transaction = {
@@ -327,6 +347,12 @@ $(document).ready(function () {
             $("#sendTransaction").show();
             showInfo("Successfully signed transaction!");
         }
+
+        $('#recipientAddress').val("");
+        $('#transferValue').val("");
+        $("#transferFee").val("");
+        $("#transferData").val("");
+
     }
 
     function sendSignedTransaction() {
