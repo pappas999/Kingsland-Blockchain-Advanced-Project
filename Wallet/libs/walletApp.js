@@ -11,12 +11,12 @@ function hexStringToByte(str) {
     if (!str) {
       return new Uint8Array();
     }
-    
+
     var a = [];
     for (var i = 0, len = str.length; i < len; i+=2) {
       a.push(parseInt(str.substr(i,2),16));
     }
-    
+
     return new Uint8Array(a);
 }
 
@@ -41,11 +41,11 @@ function kdf(password, salt, _N, _r, _p, _dklen) {
 
     scrypt_module_factory(function (scrypt) {
         key = scrypt.crypto_scrypt(
-            password, 
+            password,
             salt,
-            _N, 
-            _r, 
-            _p, 
+            _N,
+            _r,
+            _p,
             _dklen
         );
     }, {
@@ -62,7 +62,7 @@ function derivePubKeyFromPrivate(privateKey) {
 
     let pubKey_x = pubKey.getX().toString(16, 64);
     let pubKey_y = pubKey.getY().toString(16, 64);
-    
+
     return pubKey_x + parseInt(pubKey_y[63], 16) % 2;
 }
 
@@ -135,7 +135,7 @@ class Wallet {
                 }
             }
         };
-        xmlHttp.open("GET", endpoint, true); // true for asynchronous 
+        xmlHttp.open("GET", endpoint, true); // true for asynchronous
         xmlHttp.send(null);
     }
 
@@ -167,17 +167,17 @@ class Wallet {
         xmlHttp.send(signedTransaction);
     }
 
-    static createRandom(password) {
+    static createRandom() {
         var entropy = secureRandom.randomUint8Array(16);
         var mnemonic = bip39.entropyToMnemonic(entropy);
-        return this.fromMnemonic(mnemonic, password);
+        return this.fromMnemonic(mnemonic);
     }
 
-    static fromMnemonic(mnemonic, password) {
-        if (!bip39.validateMnemonic(mnemonic) || !password) {
+    static fromMnemonic(mnemonic) {
+        if (!bip39.validateMnemonic(mnemonic)) {
             return new Object();
         }
-        let seed = bip39.mnemonicToSeedSync(mnemonic, password);
+        let seed = bip39.mnemonicToSeedSync(mnemonic);
         let master = bip32.fromSeed(seed);
         let wallet = new Wallet(master.privateKey);
         wallet.mnemonic = mnemonic;
