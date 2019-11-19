@@ -131,13 +131,6 @@ class Blockchain {
 		return confirmedBalances;
 	}
 
-	getAllBalances() {
-		var allBalances = [];  //can change to map if easier
-		//insert logic here - loop through all transactions and apply logic to populate balances array or Map. Same as funcion above except this one goes over all transactions, not just confirmed.
-		//Can combine into 1 function that takes a parameter if you want? (ALL or CONFIRMED)
-
-		return allBalances;
-	}
 
 	getAddressBalance(address) {
 		var balance = {  // this is where we store our balances for an address/account
@@ -249,18 +242,6 @@ class Blockchain {
 		return block;
 	}
 
-
-	//helper function used to validate if an address exists. Must validate format only.
-	validateAddress(address) {
-
-		var re = /[0-9A-Fa-f]{6}/g;
-		if(!re.test(address) || address.length != 40) {
-			return 0;
-		}
-
-		return 1;
-
-	}
 	
 }
 
