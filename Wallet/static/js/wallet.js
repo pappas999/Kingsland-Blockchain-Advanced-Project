@@ -304,18 +304,25 @@ $(document).ready(function () {
         if(!recipient)
             return showError("Invalid recipient!");
 
+        if(!validateAddress(recipient))
+            return showError("Invalid recipient address!");
+
         let value = $('#transferValue').val();
         if(!value)
             return showError("Invalid transfer value!");
+
+        if(parseInt(value) <= 0)
+            return showError("Minimum transfer value is 1 micro-coin!");
 
         let fee = $("#transferFee").val();
         if(!fee)
             return showError("Invalid transfer free");
 
-        let data = $("#transferData").val();
-
         if(parseInt(fee) < 10)
             return showError("Minimum fee is 10 micro-coins!");
+
+        let data = $("#transferData").val();
+
 
         if(data && data !="") {
             let transaction = {
@@ -378,5 +385,16 @@ $(document).ready(function () {
         localStorage.clear();
         showView('viewHome');
     }
+
+
+    function validateAddress(address) {
+
+		var re = /[0-9A-Fa-f]{6}/g;
+		if(!re.test(address) || address.length != 40) {
+			return false;
+		}
+
+		return true;
+	}
 
 });
