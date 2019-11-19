@@ -2,16 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf7b92c3-20bf-4ee3-b920-e0a1d983048f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/MiningJob.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/NodeApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/NodeApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/Wallet/Wallet.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/Wallet/Wallet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Block.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Block.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/core/Transaction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/httpApi/minerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/httpApi/minerController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/mine/Miner.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/mine/Miner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/util/CryptoUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/java/blockchain/node/util/CryptoUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../nodeJava/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../nodeJava/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block_stat/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../block_stat/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -24,16 +15,16 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/node.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2">
-              <caret line="1114" column="11" selection-start-line="1114" selection-start-column="4" selection-end-line="1114" selection-end-column="11" />
+            <state relative-caret-position="270">
+              <caret line="1223" column="51" selection-start-line="1215" selection-start-column="4" selection-end-line="1223" selection-end-column="51" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/package.json">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
@@ -50,15 +41,17 @@
       <find>transactions</find>
       <find>createBlockHash</find>
       <find>mineBlo</find>
+      <find>websocket</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="70" />
     <option name="y" value="23" />
-    <option name="width" value="1440" />
-    <option name="height" value="826" />
+    <option name="width" value="1672" />
+    <option name="height" value="828" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -66,6 +59,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -78,7 +72,6 @@
         </subPane>
       </pane>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -110,10 +103,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="826" extended-state="0" />
+    <frame x="70" y="23" width="1672" height="828" extended-state="1" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13805436" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1196319" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -142,18 +135,18 @@
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/node.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2">
-          <caret line="1114" column="11" selection-start-line="1114" selection-start-column="4" selection-end-line="1114" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="1223" column="51" selection-start-line="1215" selection-start-column="4" selection-end-line="1223" selection-end-column="51" />
+        </state>
+      </provider>
     </entry>
   </component>
   <component name="masterDetails">
