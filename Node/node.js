@@ -5,19 +5,13 @@ var WebSocket = require("ws");
 const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
 const cors = require('cors');
-
-
-
 const utils = require('./utils');
 const got = require('got');
 
-
-var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
-var sockets = [];
-
 const DEFAULT_PORT = 5555;
 const DEFAULT_HOST = 'localhost';
-const DEFAULT_P2P_PORT = 6001;
+const DEFAULT_MINING_DIFFICULTY = 2;
+
 
 
 class Block {
@@ -58,9 +52,9 @@ class Block {
 
 class Blockchain {
 	constructor(difficulty) {
-        this.blocks = [generateGenesisBlock()];
+        this.blocks = [this.generateGenesisBlock()];
         this.pendingTransactions = [];
-        this.currentDifficulty = 1; //store in config
+        this.currentDifficulty = DEFAULT_MINING_DIFFICULTY;
         this.miningJobs = new Map();
     }
 	
@@ -93,6 +87,7 @@ class Blockchain {
 		return confirmedTransactions;
 	}
 	
+	//All transactions are defined as both pending and confirmed transactions
 	getAllTransactions() {
 		var confirmedTransactions = this.getConfirmedTransactions();
 		var allTransactions = confirmedTransactions.concat(this.pendingTransactions);
@@ -133,14 +128,6 @@ class Blockchain {
 		}
 		
 		return confirmedBalances;
-	}
-	
-	getAllBalances() {
-		var allBalances = [];  //can change to map if easier 
-		//insert logic here - loop through all transactions and apply logic to populate balances array or Map. Same as funcion above except this one goes over all transactions, not just confirmed. 
-		//Can combine into 1 function that takes a parameter if you want? (ALL or CONFIRMED)
-		
-		return allBalances;
 	}
 	
 	getAddressBalance(address) {
@@ -226,16 +213,32 @@ class Blockchain {
 		return balance;
 	}
 	
-	//helper function used to validate if an address exists. Must validate format only.
-	validateAddress(address) {
+	generateGenesisBlock() {
+		let txn = new Transaction('0000000000000000000000000000000000000000',              //from
+		                           '8e2dab77e92b10b155ba8682146561ff45593467',               //to
+					   	   		   1000000000000,                                            //value
+								   0,														//fee
+								   '2018-01-01T00:00:00.000Z',								//date created
+							       'Faucet funding',	//data
+							  	   '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
+								    undefined,                                                //transactionDataHash
+										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
+										  );
+									txn.confirmTransaction(0);
+									let transaction = [txn];
 
-		var re = /[0-9A-Fa-f]{6}/g;
-		if(!re.test(address) || address.length != 40) {
-			return 0;
-		}
-
-		return 1;
+									let block = new Block (0,          						//index                                              
+									transaction,															//transactions
+									0,																	//difficulty
+									undefined,															//prevBlockHash
+									'0000000000000000000000000000000000000000',							//minedBy
+									undefined,															//blockDataHash
+									0,																	//nonce
+									'2018-01-01T00:00:00.000Z',											//dateCreated
+									undefined);															//blockHash
+		return block;
 	}
+	
 }
 
 
@@ -256,7 +259,7 @@ class Transaction {
 	
 	generateTransactionHash() {
 		if(this.data) {
-			console.log('generating hash of this with data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' + this.data + ',' + this.senderPubKey);
+			//console.log('generating hash of this with data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' + this.data + ',' + this.senderPubKey);
         	return cryptoJS.SHA256(JSON.stringify({from: this.from,
 											     to: this.to,
 											  value: this.value,
@@ -265,7 +268,7 @@ class Transaction {
 										   	   data: this.data,
 									   senderPubKey: this.senderPubKey})).toString();
 		} else {
-			console.log('generating hash of this without data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' +  this.senderPubKey);
+			//console.log('generating hash of this without data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' +  this.senderPubKey);
 			return cryptoJS.SHA256(JSON.stringify({from: this.from,
 												to: this.to,
 											 value: this.value,
@@ -316,31 +319,7 @@ class Transaction {
 	}
 }
 
-function generateGenesisBlock() {
-		let txn = new Transaction('0000000000000000000000000000000000000000',              //from
-		                                  '8e2dab77e92b10b155ba8682146561ff45593467',               //to
-										  1000000000000,                                            //value
-										  0,														//fee
-										  '2018-01-01T00:00:00.000Z',								//date created
-										  'Faucet funding',	//data
-										  '00000000000000000000000000000000000000000000000000000000000000000',	//senderPubKey
-										  undefined,                                                //transactionDataHash
-										  ["0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000000"],	//senderSig
-										  );
-		txn.confirmTransaction(0);
-		let transaction = [txn];
 
-		let block = new Block (0,          															//index                                              
-							   transaction,															//transactions
-							   0,																	//difficulty
-							   undefined,															//prevBlockHash
-							   '0000000000000000000000000000000000000000',							//minedBy
-							   undefined,															//blockDataHash
-							   0,																	//nonce
-							   '2018-01-01T00:00:00.000Z',											//dateCreated
-							   undefined);															//blockHash
-		return block;
-}
 
 
 class Node {
@@ -349,8 +328,8 @@ class Node {
 		this.port = port || DEFAULT_PORT;  //use default port if not populated
 		this.selfUrl = 'http://' + this.host + ':' + this.port;
         this.nodeId = this.generateNodeId();
-		console.log('generated node id: ' + this.nodeId);
-		console.log('generated selfUrl: ' + this.selfUrl);
+		console.log('Generated node id: ' + this.nodeId);
+		console.log('Node selfUrl: ' + this.selfUrl);
 		
 		//initialise the peers and the blockchain, both will initially be empty
 		this.peers = new Map(); 
@@ -364,7 +343,7 @@ class Node {
 		return cryptoJS.SHA256(timestamp + randomNo).toString();
 	}
 	
-	//end point: /info                  -- DONE
+	//end point: /info                 
 	getInfo() {
 		let obj = {
 			"about" : "Kingsland Asia MI4: " + this.nodeId,
@@ -383,7 +362,7 @@ class Node {
 		
 	}
 	
-	//end point: /debug   --DONE
+	//end point: /debug   
 	getDebug() {
 		let obj = {
 			"selfUrl" : this.selfUrl,
@@ -395,7 +374,7 @@ class Node {
 		
 	}
 	
-	//end point: /debug/reset-chain           --DONE
+	//end point: /debug/reset-chain           
 	resetChain() {
 		this.blockchain = new Blockchain();
 		const obj = {message: 'The chain was reset to its genesis block'};
@@ -404,14 +383,14 @@ class Node {
 	}
 	
 	
-	//end point: /blocks                      --DONE
+	//end point: /blocks                     
 	getBlocks() {
 		return JSON.stringify(this.blockchain.blocks, null, 4);
 	}
 	
-	//end point: /blocks/:index              -- DONE
+	//end point: /blocks/:index              
 	getBlock(index) {
-		console.log('index: ' + index);
+		//console.log('index: ' + index);
 		if (parseInt(index) >= 0) {
 			if (this.blockchain.blocks[index] == undefined) {
 				const obj = {message: 'Block number: ' + index + ' does not exist'};
@@ -425,24 +404,24 @@ class Node {
 		}
 	}
 	 
-	//end point: /transactions/pending                 --DONE, check format once implement transactions
+	//end point: /transactions/pending                 
 	getPendingTransactions() {
 		return JSON.stringify(this.blockchain.pendingTransactions, null, 4);
 	}
 	
-	//end point: /trasnactions/confirmed            --DONE
+	//end point: /trasnactions/confirmed            
 	getConfirmedTransactions() {
 		return JSON.stringify(this.blockchain.getConfirmedTransactions(), null, 4);
 	}
 	
 	
-	//end point: /balances                        --DONE   CHECK TO SEE DOESNT SHOW THE 0 one with minus balance
+	//end point: /balances                       
 	getBalances() {
 		return JSON.stringify(this.blockchain.getConfirmedBalances(), null, 4);
 	}
 	
 	
-	//end point: /transactions/:tranHash                 --DONE
+	//end point: /transactions/:tranHash                
 	getTransaction(tranHash) {
 		//use confirmed transactions as a basis for search
 		var transactions = this.blockchain.getConfirmedTransactions();
@@ -454,7 +433,7 @@ class Node {
 			}
 		}
 		
-		//if got to this point, it means transactioon wasn't found, so return error
+		//if got to this point, it means transaction wasn't found, so return error
 		return JSON.stringify({Message: 'Transaction ' +  tranHash + ' not found'}, null, 4);
 	}
 	
@@ -473,7 +452,7 @@ class Node {
 	
 
 	
-	//end point: /address/:address/transactions                --DONE , CHECK ORDER OF TRANSACTIONS
+	//end point: /address/:address/transactions               
 	getAddressTransactions(address) {
 		var addrTransactions = [];
 		//use ALL transactions as a basis for search
@@ -488,16 +467,13 @@ class Node {
 		
 		//sort results in order of date/time ascending then return 
 		//dateCreated is field to sort by, ascending
-		
-		
 		return JSON.stringify(addrTransactions.sort((a, b) => b.dateCreated - a.dateCreated),null,4);
-		//const sortedActivities = activities.sort((a, b) => b.date - a.date)
 	}
 	
-	//end point: /address/:address/balance            --DONE
+	//end point: /address/:address/balance            
 	getAddressBalance(address) {
 		//check if valid address, if so return json, otherwise return error
-		if (this.blockchain.validateAddress(address) > 0) {
+		if (utils.validateAddress(address) > 0) {
 			return JSON.stringify(this.blockchain.getAddressBalance(address),null,4);
 		} else {
 			return {errorMsg:  "Invalid address"}
@@ -595,10 +571,9 @@ class Node {
 
 		return response;
 
-		// return JSON.stringify(response,null,4);
 	}
 	
-	//end point: /peers        --DONE, CHECK FORMATTING AFTER
+	//end point: /peers       
 	getPeers() {
 		return JSON.stringify(this.peers, null, 4);
 	}
@@ -609,8 +584,6 @@ class Node {
 		var peerFound = false;
 		
         var peerInfo = await got(peerUrl + '/info');
-		console.log ('peer info:' + peerInfo.body);		
-		
 		var obj = JSON.parse(peerInfo.body);
 		
         //Make sure chain ID matches
@@ -633,9 +606,7 @@ class Node {
         //Connect back to the peer if not already connected
 		//to check for existing connection, check their /peers endpoint to see if our URL In there
         try {
-			var peerPeers = await got(peerUrl + '/peers');
-			console.log ('peer peer list:' + peerPeers.body);		
-			
+			var peerPeers = await got(peerUrl + '/peers');		
 			obj = JSON.parse(peerPeers.body);
 			
 			
@@ -678,9 +649,7 @@ class Node {
 	async syncChain(peerUrl) {
 		
 		try {
-			var peerInfo = await got(peerUrl + '/info');
-			console.log ('peer info:' + peerInfo.body);		
-		
+			var peerInfo = await got(peerUrl + '/info');	
 			var obj = JSON.parse(peerInfo.body);
 		
 			//Check to see if other chain has a higher cumulative difficulty, which means we need to verify it and potentially sync to the new chain
@@ -793,8 +762,8 @@ class Node {
 						}
 						
 						//fields validated, now recalculate the transaction data hash 
-						console.log('comparing these hashes1: ' + transaction.transactionDataHash);
-						console.log('comparing these hashes2: ' + transaction.generateTransactionHash());
+						//console.log('comparing these hashes1: ' + transaction.transactionDataHash);
+						//console.log('comparing these hashes2: ' + transaction.generateTransactionHash());
 						//if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
 						
 						console.log('validating the signature');
@@ -804,7 +773,37 @@ class Node {
 						}
 						
 
-						//re-execute all transactions, calculate the values of minedInBlockIndex and transactionSuccessful
+						//re-execute/validate transactions calculate the values of minedInBlockIndex and transactionSuccessful
+						//None of these need to occur for coinbase transaction
+						if (transaction.from !== '0000000000000000000000000000000000000000') {
+							// verify sender publicKey and address if address = hashOf(pubkey). Don't do for coinbase transactions
+							if(transaction.from !== cryptoJS.RIPEMD160(transaction.senderPubKey).toString()) {
+								throw new Error("Invalid sender public key or blockchain address!");
+							}
+
+							// validate value
+							if(transaction.value < 0) {
+								throw new Error("value field must be greater than zero");
+							}
+
+							// validate fee - dont' do for coinbase transactions
+							if(transaction.fee < 10 & transaction.from !== '0000000000000000000000000000000000000000') {
+								throw new Error("Minimum fee is 10");
+							}
+
+							// validate sender balance
+							var confirmedBalance = this.blockchain.getAddressConfirmedBalance(transaction.from);
+							if(confirmedBalance < transaction.value + transaction.fee) {
+								throw new Error("Sender does not have enough balance");
+							}
+
+							// verify signature
+							if(!transaction.verifyTransaction()) {
+								throw new Error("Vefication failed. Skipping!");
+							}
+						}
+
+						// transaction is valid!  
 						transaction.minedInBlockIndex = block.index;
 						transaction.transactionSuccessful = 'true';
 		
@@ -875,15 +874,15 @@ class Node {
 			
 				//append missing ones to our pendingTranasctions, ensuring no duplicates
 				for(var i = 0; i < pendingTransactions.length; i++) { 
-					pendingTransaction = pendingTransactions[i] = new Transaction(pendingTransactions[i].from,
-																				pendingTransactions[i].to,
-																				pendingTransactions[i].value,
-																				pendingTransactions[i].fee,
-																				pendingTransactions[i].dateCreated,
-																				pendingTransactions[i].data,
-																				pendingTransactions[i].senderPubKey,
-																				pendingTransactions[i].transactionDataHash,
-																				pendingTransactions[i].senderSignature);
+					var pendingTransaction = pendingTransactions[i] = new Transaction(pendingTransactions[i].from,
+																				  pendingTransactions[i].to,
+																				  pendingTransactions[i].value,
+																				  pendingTransactions[i].fee,
+																				  pendingTransactions[i].dateCreated,
+																				  pendingTransactions[i].data,
+																				  pendingTransactions[i].senderPubKey,
+																				  pendingTransactions[i].transactionDataHash,
+																				  pendingTransactions[i].senderSignature);
 																				
 					//first, ensure we don't already have this transaction
 					if(this.getPendingTransaction(pendingTransaction.transactionDataHash)) {
@@ -927,7 +926,8 @@ class Node {
 						}
 								
 						//check sender has enough balance
-						var balance = this.getAddressBalance(pendingTransaction.from);
+						var balance = this.blockchain.getAddressBalance(pendingTransaction.from);
+						
 						if(!(balance.confirmedBalance >= (pendingTransaction.value + pendingTransaction.fee))) 	throw new Error('Pending Transaction ' + pendingTransaction.transactionDataHash + ' Sender does not have enough balance');
 
 						//check the signature is valid
@@ -951,14 +951,13 @@ class Node {
 	}
 	
 	
-	//end point: /peers/notify-new-block      --needs testing
+	//end point: /peers/notify-new-block      
 	//function to take a change from another peer and process it
 	async newBlockNotify(peerUrl) {
-		
 		try {
 			//get info from peer blocks endpoint
 			var peerBlocks = await got(peerUrl + '/blocks');
-			console.log ('peer new block notify blocks:' + peerBlocks.body);		
+			//console.log ('peer new block notify blocks:' + peerBlocks.body);		
 		
 			var blocks = JSON.parse(peerBlocks.body);
 		
@@ -967,6 +966,7 @@ class Node {
 						
 			//clear all current mining jobs
 			this.blockchain.miningJobs = {};
+
 			
 		} catch(error) {
 			throw new Error('Error in newBlockNotify: ' + error);
@@ -978,6 +978,7 @@ class Node {
 	//if change is from our own chain , then this will be null and we will notify all peers
 	async notifyPeersOfChanges(peerUrlChangeFrom) {
 		
+		
 		//build up json object to send to peers
 		var newBlockNotification = {
 			blocksCount: this.blockchain.blocks.length,
@@ -985,6 +986,7 @@ class Node {
 			nodeUrl: this.selfUrl
 		};
 		
+
 		//now send the json to each peer on their notify new block REST endpoint
 		for (var nodeId in this.peers) {
 			var peerUrl = this.peers[nodeId];
@@ -1023,7 +1025,8 @@ class Node {
 
         // order transactions from highest fee to lowest
 		var sortedPendingTransactions = this.blockchain.pendingTransactions.sort((a, b)=> b.fee - a.fee);
-        // Validate transaction
+		
+        // Validate transactions
         for(let i = 0; i < sortedPendingTransactions.length; i++) {
             let pendingTransaction = sortedPendingTransactions[i];
             balances[pendingTransaction.from] = balances[pendingTransaction.from] || 0;
@@ -1089,25 +1092,25 @@ class Node {
 				return { Error: "Proof Of Work is incorrect. Required: " + block.difficulty + ' found: ' + i};
 			}
 		}
+		
+		//if got to this point, then we're all good to add the block to the blockchain
 
-        if (!block.Error) {
-            //add block to the blockchain
-			this.blockchain.blocks.push(block);
+		this.blockchain.blocks.push(block);
 			
-			//remove pending transactions			
-			for (var i = 0; i < block.transactions.length; i++) {
-				for(var j = 0; j < this.blockchain.pendingTransactions.length; j++) {
-					if(this.blockchain.pendingTransactions[j].transactionDataHash === block.transactions[i].transactionDataHash) {
-						this.blockchain.pendingTransactions.splice(j, 1);
-						break; //already removed this one, no need to keep looping
-					}
+		//remove pending transactions			
+		for (var i = 0; i < block.transactions.length; i++) {
+			for(var j = 0; j < this.blockchain.pendingTransactions.length; j++) {
+				if(this.blockchain.pendingTransactions[j].transactionDataHash === block.transactions[i].transactionDataHash) {
+					this.blockchain.pendingTransactions.splice(j, 1);
+					break; //already removed this one, no need to keep looping
 				}
 			}
-			
-			console.log("Mined a new block: " + JSON.stringify(block));
-			//Need to clear out any mining jobs
-			this.blockchain.miningJobs = {};
 		}
+			
+		console.log("Mined a new block: " + JSON.stringify(block));
+		//Need to clear out any mining jobs
+		this.blockchain.miningJobs = {};
+		
 		
         return block;
 	}
@@ -1147,6 +1150,10 @@ class Node {
         // Submit the mined block
         let newBlock = this.SubmitBlock(block.blockDataHash, block.dateCreated, block.nonce, block.blockHash);
 		console.log('block debug mined ');
+		
+		//notify peers a change has occured
+		this.notifyPeersOfChanges();
+		
         return block;
 	}
 	
@@ -1290,25 +1297,26 @@ var initNode = () => {
 	app.post('/peers/notify-new-block', async(req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
-		
 		console.log('got a new block notification from another peer:' + JSON.stringify(req.body));
 	
 		try {
 			//ensure we have a Cumulative difficulty
-			if(!req.body.cumulativeDifficulty) { 
+			if(!req.body.newBlockNotification.cumulativeDifficulty) { 
 				console.log('bad block notification, cumulativeDifficulty not found');
 				throw new Error('bad block notification, cumulativeDifficulty not found'); 
 			}
 			
-			if (req.body.cumulativeDifficulty > this.node.blockchain.getCumulativeDifficulty()) {
-				console.log('need to add new block from peer ' + req.body.nodeUrl);
-				let info = await node.newBlockNotify(req.body.nodeUrl);		
+			
+			if (req.body.newBlockNotification.cumulativeDifficulty > node.blockchain.getCumulativeDifficulty()) {
+				console.log('need to add new block from peer ' + req.body.newBlockNotification.nodeUrl);
+				let info = await node.newBlockNotify(req.body.newBlockNotification.nodeUrl);		
 				
 				//notify peers a change has occured, pass in the source of the  change so we don't notify them back
-				notifyPeersOfChanges(req.body.nodeUrl);
-
+				await node.notifyPeersOfChanges(req.body.newBlockNotification.nodeUrl);
+					
+		
 				res.status = 200;
-				res.json({message: 'Thanks for the notification: ' + req.body.nodeUrl });
+				res.json({message: 'Thanks for the notification: ' + req.body.newBlockNotification.nodeUrl });
 			}
 			
 		}
@@ -1399,7 +1407,7 @@ var initNode = () => {
 			} else {
 				res.json({"Message":	'Block accepted, reward paid: ' + result.transactions[0].value + ' micro coins'});
 
-				//notify peers a change has occured, pass in the source of the  change so we don't notify them back
+				//notify peers a change has occured
 				notifyPeersOfChanges();
 				res.status = 200;
 			}

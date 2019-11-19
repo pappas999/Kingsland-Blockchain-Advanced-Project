@@ -50,10 +50,11 @@ module.exports = {
 	},
 	
 	verifySignature(data, pubKeyCompressed, signature) {
-		console.log('in verify signature');
+		
+		/*console.log('in verify signature');
 		console.log('pubKeyCompressed: ' + pubKeyCompressed);
 		console.log('data: ' + data);
-		console.log('signature: ' + signature);
+		console.log('signature: ' + signature);*/
 		
 		let pubKeyX = pubKeyCompressed.substring(0, 64);
 		let pubKeyOdd = parseInt(pubKeyCompressed.substring(64));
@@ -63,5 +64,16 @@ module.exports = {
 		let result = keyPair.verify(data, {r: signature[0], s : signature[1]});
 	
 		return result;
+	},
+	
+	//helper function used to validate if an address exists. Must validate format only.
+	validateAddress(address) {
+
+		var re = /[0-9A-Fa-f]{6}/g;
+		if(!re.test(address) || address.length != 40) {
+			return 0;
+		}
+
+		return 1;
 	}
 }
