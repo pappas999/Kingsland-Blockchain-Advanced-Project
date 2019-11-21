@@ -1108,7 +1108,6 @@ class Node {
 		}
 		
 		//if got to this point, then we're all good to add the block to the blockchain
-
 		this.blockchain.blocks.push(block);
 			
 		//remove pending transactions			
@@ -1122,29 +1121,7 @@ class Node {
 		}
 			
 		console.log("Mined a new block: " + JSON.stringify(block));
-		//Need to clear out any mining jobs
-		this.blockchain.miningJobs = {};
 		
-		
-        if (!block.Error) {
-            //add block to the blockchain
-			this.blockchain.blocks.push(block);
-
-			//remove pending transactions
-			for (var i = 0; i < block.transactions.length; i++) {
-				for(var j = 0; j < this.blockchain.pendingTransactions.length; j++) {
-					if(this.blockchain.pendingTransactions[j].transactionDataHash === block.transactions[i].transactionDataHash) {
-						this.blockchain.pendingTransactions.splice(j, 1);
-						break; //already removed this one, no need to keep looping
-					}
-				}
-			}
-
-			console.log("Mined a new block: " + JSON.stringify(block));
-			//Need to clear out any mining jobs
-			this.blockchain.miningJobs = {};
-		}
-
         return block;
 	}
 
@@ -1501,6 +1478,8 @@ var initNode = () => {
 		}
 	});
 	
+	//debugging endpoint - can be used to generate a number of faucet transactions quickly. call a GET on /test/no , where no is the number of test transactions you want generated in the next block. 
+	//The block will not be mined automatically and you need to mine it yourself
 	app.get('/test/:trans', (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Content-Type', 'application/json');
