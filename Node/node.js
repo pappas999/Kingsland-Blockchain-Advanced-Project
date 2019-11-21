@@ -1190,6 +1190,47 @@ class Node {
         return block;
 	}
 
+	//debug function used to generate some test data transactions from the faucet address. To be used purely for testing/demonstration purposes only
+	generateTestData(transactionCount) {
+		//transactionCount param defines how many transactions to generate for the next block
+		const FAUCET_PRIVATE_KEY = "8a24633643c2eb59f11a4bbbb814fa60542e92317f439cbccd3f823978e73d8a";
+		
+		var publicKey = utils.derivePubKeyFromPrivate(FAUCET_PRIVATE_KEY);
+
+		var faucetAddr = cryptoJS.RIPEMD160(publicKey).toString();
+	
+	
+		var accounts = ['d6d612eb6eb2f6ff3c217236feed011ac35d7efe', '5cd3db504b91941db3bc8191e88521e9f41d93e8', 'c699253bbe5e4eed3086453522f4ce59bd5b7af3', '0925d5d295547a3a4a6adfd4c871efb6c63da396', 'fa88c6def7e6d856a0e6842a4c61dacbf716f4c8'];
+		console.log('generating ' + transactionCount + ' test transactions from faucet');
+		
+		for (var i = 0; i < transactionCount; i++) {
+				//first, build up a transaction object. Use a random address to generate to from accounts array above
+				console.log('iteration ' + i);
+				var randomNo = Math.floor(Math.random() * Math.floor(5));
+				console.log('random number is ' + randomNo);
+				var trans = new Transaction(faucetAddr,     					                                //from - facuet address
+				                            accounts[randomNo],                             					//to
+											Math.floor(Math.random() * Math.floor(500000)),  					//random value to send
+											10,                                             					//fee
+											new Date().toISOString(),                       					//date created
+											'test transaction: ' + i,                       					//data
+											utils.derivePubKeyFromPrivate(FAUCET_PRIVATE_KEY), 					//senderPubKey
+											undefined,                                                          //transaction hash
+											undefined);                                                         //sender sig
+											
+											trans.transactionHash = trans.generateTransactionHash();
+											trans.senderSignature = utils.signData(trans.transactionHash,FAUCET_PRIVATE_KEY);
+											
+											
+				//send the transaction to the node
+				console.log('sending trans: ' + JSON.stringify(trans,0,4));
+				var sent = this.sendTransaction(trans);	   
+				console.log('sendTrans response: ' + JSON.stringify(sent,0,4));
+		}
+		console.log('done generating transactions');
+		return '{Message: "All transactions created successfully"}';
+		
+	}
 }
 
 
@@ -1458,6 +1499,12 @@ var initNode = () => {
 			});
 			res.send();
 		}
+	});
+	
+	app.get('/test/:trans', (req, res) => {
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.setHeader('Content-Type', 'application/json');
+		res.send(node.generateTestData(req.params.trans));
 	});
 
 

@@ -56,5 +56,23 @@ module.exports = {
 		}
 
 		return 1;
+	},
+	
+	derivePubKeyFromPrivate(privateKey) {
+		let keyPair = secp256k1.keyFromPrivate(privateKey);
+		let pubKey = keyPair.getPublic();
+
+		let pubKey_x = pubKey.getX().toString(16, 64);
+		let pubKey_y = pubKey.getY().toString(16, 64);
+    
+		return pubKey_x + parseInt(pubKey_y[63], 16) % 2;
+	},
+	
+	signData(data, privKey) {
+		let keyPair = secp256k1.keyFromPrivate(privKey);
+		let signature = keyPair.sign(data);
+
+		return [signature.r.toString(16, 64), signature.s.toString(16, 64)];
 	}
+
 }
