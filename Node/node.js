@@ -263,7 +263,7 @@ class Transaction {
 
 	generateTransactionHash() {
 		if(this.data) {
-			//console.log('generating hash of this with data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' + this.data + ',' + this.senderPubKey);
+			
         	return cryptoJS.SHA256(JSON.stringify({from: this.from,
 											     to: this.to,
 											  value: this.value,
@@ -272,7 +272,7 @@ class Transaction {
 										   	   data: this.data,
 									   senderPubKey: this.senderPubKey})).toString();
 		} else {
-			//console.log('generating hash of this without data: ' + this.from + ',' + this.to + ',' + this.value + ',' + this.fee + ',' + this.dateCreated + ',' +  this.senderPubKey);
+			
 			return cryptoJS.SHA256(JSON.stringify({from: this.from,
 												to: this.to,
 											 value: this.value,
@@ -302,6 +302,7 @@ class Transaction {
 				senderPubKey: this.senderPubKey,
 				transactionDataHash : this.transactionDataHash,
 				senderSignature : this.senderSignature,
+				minedInBlockIndex : -1,
 				transactionSuccessful: 'false'
 				}
 		} else {
@@ -315,6 +316,7 @@ class Transaction {
 				senderPubKey: this.senderPubKey,
 				transactionDataHash : this.transactionDataHash,
 				senderSignature : this.senderSignature,
+				minedInBlockIndex : -1,
 				transactionSuccessful: 'false'
 			}
 		}
@@ -426,7 +428,6 @@ class Node {
 	}
 	
 	
-
 	//end point: /transactions/:tranHash                 
 	getTransaction(tranHash) {
 		//use confirmed transactions as a basis for search
@@ -774,14 +775,10 @@ class Node {
 							//check type of values
 							if (typeof ss[s] !== 'string')   throw new Error('Transaction ' + t + ' in Block ' + i + ' Sender Signature ' + s + ' is not a valid string');
 						}
-
 						
-						//fields validated, now recalculate the transaction data hash 
-						//console.log('comparing these hashes1: ' + transaction.transactionDataHash);
-						//console.log('comparing these hashes2: ' + transaction.generateTransactionHash());
-						//if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
+						//validate the transaction hash matches
+						if (transaction.transactionDataHash != transaction.generateTransactionHash()) throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Data Hash is not valid');
 
-						console.log('validating the signature');
 						//validate the signature - doesn't need to be done for genesis block or for the coinbase transaction
 						if (i > 0 & t > 0) {
 							if (!(utils.verifySignature(transaction.transactionDataHash, transaction.senderPubKey, transaction.senderSignature)))  throw new Error('Transaction ' + t + ' in Block ' + i + ' Transaction Signature is not valid');
@@ -819,18 +816,20 @@ class Node {
 						}
 
 						// transaction is valid!  
-						transaction.minedInBlockIndex = block.index;
 						transaction.transactionSuccessful = 'true';
+						transaction.minedInBlockIndex = block.index;
+						
 
 
 
 					}
 					console.log('done validating transactions for block ' + i);
 
-					//if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
+					//Validate block data hash and block hash
+					if (block.blockDataHash !== block.createBlockDataHash()) throw new Error('Block ' + i + ' blockDataHash is invalid');
 					if (block.blockHash !== block.createBlockHash()) throw new Error('Block ' + i + ' blockHash is invalid');
 
-					console.log('checking block difficulty for hash: ' + block.blockHash);
+
 					//ensure block hash mashes block difficulty - construct regex string that checks for the correct amount of leading zeros
 					let blockHashDiffTest = new RegExp('^[0]{' + block.difficulty + '}');
 					if (!(blockHashDiffTest.test(block.blockHash))) throw new Error('Block ' + i + ' difficulty doesnt match hash');
@@ -1059,7 +1058,7 @@ class Node {
             }
         }
 		//now that we've validated all transactions, finalise remaining values for coinbsae transaction
-        coinbaseTransaction.generateTransactionHash();
+        coinbaseTransaction.transactionDataHash = coinbaseTransaction.generateTransactionHash();
 		coinbaseTransaction.minedInBlockIndex = newBlockIndex;
         coinbaseTransaction.transactionSuccessful = 'true';
 
@@ -1075,7 +1074,9 @@ class Node {
             new Date().toISOString(),
             undefined
         );
-
+		
+		candidateBlock.blockDataHash = candidateBlock.createBlockDataHash();
+		
 		//update the map of mining jobs in blockchain
         this.blockchain.miningJobs[candidateBlock.blockDataHash] = candidateBlock;
 
