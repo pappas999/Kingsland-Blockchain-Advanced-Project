@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d48453cd-78a2-4c16-84e6-3d343b1e5fa0" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../Node/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Node/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/.idea/Block-explorer-master.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/.eslintrc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-bold.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-bold.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-bold.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-bold.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-heavy.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-heavy.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-heavy.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-heavy.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-light.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-light.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-light.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-light.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-medium.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-medium.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-medium.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-medium.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-regular.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-regular.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-regular.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-regular.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-semibold.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-semibold.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-semibold.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/SFPro/sf-pro-text-semibold.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/icon-tomo/fonts/icon-tomo.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/icon-tomo/fonts/icon-tomo.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/icon-tomo/fonts/icon-tomo.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/icon-tomo/fonts/icon-tomo.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/fonts/icon-tomo/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/address.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/bg-image.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/block.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/icon-tx.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/loading.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/lock.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/logo.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/register.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/img/tomo-loading.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/app.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_block-breadcrumb.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_body-wrapper.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_breadcrumb.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_card.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_code-actions.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_codemirror.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_container.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_contract-info.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_copyright.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_dropdown.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_empty.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_event-logs.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_footer.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_headline.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_loading.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_modal.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_nav.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_navbar-toggle.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_pagination.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_read-more.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_search-form.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_stat.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_table.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_tabs.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_toggle.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/components/_transfer-event.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/elements/_body.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/elements/_button.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/elements/_links.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/elements/_small.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/objects/_animations.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/objects/_grid.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/objects/_typo.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/settings/_fonts.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/settings/_global.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/tools/_mixins.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/tools/_placeholder.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/assets/scss/trumps/_custom.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/Breadcrumb.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/Footer.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/Login.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/ReadContract.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/ReadMore.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/Register.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableBase.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableEvent.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableTokenHolder.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableTokenTx.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableTokensByAccount.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableTx.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/components/TableTxByAccount.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/layouts/default.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/layouts/error.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/nuxt.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/accounts/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/address/_slug.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/blocks/_slug.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/blocks/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/contracts/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/contracts/verify.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/follows/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/login.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/tokens/_slug.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/tokens/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/tokentxs/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/txs/_slug.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/txs/index.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pages/txs/pending.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/plugins/axios.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/plugins/bootstrap-vue.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/plugins/clipboards.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/plugins/mixin.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/plugins/vue-codemirror.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/plugins/vuelidate.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/pm2.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/static/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/static/robots.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/store/app.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/store/breadcrumb.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/store/user.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/client/test/app.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/WiredTiger" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/WiredTiger.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/WiredTiger.turtle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/WiredTiger.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/WiredTigerLAS.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/_mdb_catalog.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-0-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-13-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-14-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-15-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-16-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-2-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-4-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/collection-8-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/diagnostic.data/metrics.2019-11-19T04-13-37Z-00000" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/diagnostic.data/metrics.2019-11-19T04-54-41Z-00000" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/diagnostic.data/metrics.interim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-1-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-10-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-17-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-18-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-19-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-20-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-21-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-22-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-23-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-24-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-3-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-5-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-6-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/index-9-1442812354617534867.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/mongod.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/sizeStorer.wt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/db/dev/storage.bson" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/src/routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/routes.js" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DefaultGradleProjectSettings">
+    <option name="isMigrated" value="true" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/views/index.ejs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="72">
+              <caret line="28" selection-start-line="28" selection-end-line="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/views/error.ejs">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/users.js">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/index.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="774">
+              <caret line="106" selection-start-line="106" selection-end-line="106" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectConfigurationFiles">
+    <option name="files">
+      <list>
+        <option value="$PROJECT_DIR$/.idea/Faucet.iml" />
+        <option value="$PROJECT_DIR$/.idea/vcs.xml" />
+        <option value="$PROJECT_DIR$/.idea/modules.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="1481" />
+    <option name="y" value="23" />
+    <option name="width" value="1760" />
+    <option name="height" value="1004" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="Faucet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Faucet" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Faucet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Faucet" type="462c0819:PsiDirectoryNode" />
+              <item name="routes" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Faucet" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Faucet" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d48453cd-78a2-4c16-84e6-3d343b1e5fa0" name="Default Changelist" comment="" />
+      <created>1574676926516</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1574676926516</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="1481" y="23" width="1760" height="1004" extended-state="1" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Image Layers" />
+      <window_info id="Designer" />
+      <window_info id="UI Designer" />
+      <window_info id="Capture Tool" />
+      <window_info id="Favorites" side_tool="true" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2031432" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" />
+      <window_info anchor="bottom" id="Terminal" />
+      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="Palette" />
+      <window_info anchor="right" id="Theme Preview" />
+      <window_info anchor="right" id="Maven" />
+      <window_info anchor="right" id="Capture Analysis" />
+      <window_info anchor="right" id="Palette&#9;" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/routes/users.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="774">
+          <caret line="106" selection-start-line="106" selection-end-line="106" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/error.ejs">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/index.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ProjectJDKs.UI">
+        <settings>
+          <last-edited>1.8</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>

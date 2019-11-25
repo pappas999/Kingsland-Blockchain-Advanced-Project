@@ -1,63 +1,27 @@
-sudo: required
+sudo: false
 language: node_js
-node_js: "8"
-
-script: skip
-
-jobs:
-  include:
-    - stage: Lint
-      script:
-        - cd $TRAVIS_BUILD_DIR/client && npm install && npm run lint
-        - cd $TRAVIS_BUILD_DIR/server && npm install && npm run lint
-
-    - stage: Tests
-      script: echo "No tests at the moment"
-
-    - stage: Build and push tomoscan image (untagged)
-      services:
-        - docker
-      install: skip
-      before_script:
-        - docker build -t tomochain/tomoscan-server -f Dockerfile.server .
-        - docker build -t tomochain/tomoscan-client -f Dockerfile.client .
-      script:
-        - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-        - docker tag tomochain/tomoscan-server tomochain/tomoscan-server:latest
-        - docker push tomochain/tomoscan-server:latest
-        - docker tag tomochain/tomoscan-server tomochain/tomoscan-server:$TRAVIS_BUILD_ID
-        - docker push tomochain/tomoscan-server:$TRAVIS_BUILD_ID
-        - docker tag tomochain/tomoscan-client tomochain/tomoscan-client:latest
-        - docker push tomochain/tomoscan-client:latest
-        - docker tag tomochain/tomoscan-client tomochain/tomoscan-client:$TRAVIS_BUILD_ID
-        - docker push tomochain/tomoscan-client:$TRAVIS_BUILD_ID
-      after_success:
-        - curl -X POST $INFRA_IMAGE_REBUILD_HOOK
-
-    - stage: Build and push tomoscan image (tagged)
-      services:
-        - docker
-      install: skip
-      before_script:
-        - docker build -t tomochain/tomoscan-server -f Dockerfile.server .
-        - docker build -t tomochain/tomoscan-client -f Dockerfile.client .
-      script:
-        - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-        - docker tag tomochain/tomoscan-server tomochain/tomoscan-server:latest
-        - docker push tomochain/tomoscan-server:latest
-        - docker tag tomochain/tomoscan-server tomochain/tomoscan-server:$TRAVIS_TAG
-        - docker push tomochain/tomoscan-server:$TRAVIS_TAG
-        - docker tag tomochain/tomoscan-client tomochain/tomoscan-client:latest
-        - docker push tomochain/tomoscan-client:latest
-        - docker tag tomochain/tomoscan-client tomochain/tomoscan-client:$TRAVIS_TAG
-        - docker push tomochain/tomoscan-client:$TRAVIS_TAG
-      after_success:
-        - curl -X POST $INFRA_IMAGE_REBUILD_HOOK
-
-stages:
-  - name: Lint
-  - name: Tests
-  - name: Build and push tomoscan image (untagged)
-    if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/tomoscan
-  - name: Build and push tomoscan image (tagged)
-    if: type != pull_request AND branch =~ ^v AND tag IS present AND repo = tomochain/tomoscan
+node_js:
+  - "5.0"
+env:
+  - CXX=g++-4.8
+cache:
+  directories:
+    - node_modules
+notifications:
+  email: false
+branches:
+  only:
+    - develop
+    - master
+script:
+  - npm run test:coverage
+after_success:
+  - npm run coveralls
+deploy:
+  provider: heroku
+  api_key: 4fd3f4ce-2f6a-49c7-b238-21dd660db329
+  app:
+    develop: media-gallery
+    master: media-gallery
+before_deploy:
+  - npm i pushstate-server -g

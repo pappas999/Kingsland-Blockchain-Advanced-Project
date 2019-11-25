@@ -1,76 +1,40 @@
-# Kingsland Explorer - Kingslandscan
+[![Build Status](https://travis-ci.org/rowlandekemezie/media-library.svg?branch=master)](https://travis-ci.org/rowlandekemezie/media-library)
+[![Coverage Status](https://coveralls.io/repos/github/rowlandekemezie/media-library/badge.svg?branch=master)](https://coveralls.io/github/rowlandekemezie/media-library?branch=master)
+[![Contact me on Codementor](https://cdn.codementor.io/badges/contact_me_github.svg)](https://www.codementor.io/rowland?utm_source=github&utm_medium=button&utm_term=rowland&utm_campaign=github)
+
+![Application UI](https://cloud.githubusercontent.com/assets/15085641/17646353/587e60d0-61bd-11e6-9403-82437ee3a6e6.png)
 
 
-KingsLand is a BlockExplorer for **Kingsland**, built with VueJS, Nuxt and MongoDB. Veloxscan allows you to explore and search the **Kingsland** for transactions, addresses, tokens, prices and other activities taking place on **Kingsland**.
+- Click here for see the [Live demo](http://media-gallery.herokuapp.com).
+- Click [here](https://scotch.io/tutorials/build-a-media-library-with-react-redux-and-redux-saga-part-1) for the tutorial post.
 
-## Current Features
-- Browse blocks, transactions, accounts and contracts
-- View pending transactions
-- Upload & verify contract sources
-- Display the current state of verified contracts
-- Follow an address list
-- Responsive layout
+# Motivation
+media-gallery is a tutorial app to get all levels of React developers up to speed with how to architect a scalable, maintainable and testable react/redux application.
 
+# Technology used
+* [React](https://facebook.github.io/react/) as the core infrastructure.
+* [Redux](https://github.com/reactjs/redux) for state management.
+* [Redux-saga](https://github.com/yelouafi/redux-saga) for handling async tasks with agility.
 
-## Getting started
+# Modules covered
+1. Introduction.
+2. Project setup.
+2. Define action.
+3. Setup state management system.
+4. Define async task handlers.
+5. Create a container component.
+6. Create presentational component.
+7. Connect React component to redux store.
+8. Deploy app on Heroku.
 
-### Requirements
-- [Docker](https://www.docker.com/get-docker)
+## Credit
+Special credit goes to Facebook team for  [create-react-app](https://facebook.github.io/react/blog/2016/07/22/create-apps-with-no-configuration.html)
 
-### Setup
+## Sending Feedback
+I am always open to [your feedback](https://github.com/andela-rekemezie/media-gallery/issues).
 
-Copy .env files
-```bash
-cp client/.env.example client/.env
-```
+## Contributing 
+If you have ideas of how to make the app a good learning tool, open an [issue](https://github.com/andela-rekemezie/media-gallery/issues).
 
-Build & up docker
-```bash
-docker-compose -f docker-compose-dev.yml up --build
-```
-The site will run at http://localhost:3000, server will run at http://localhost:3333
+* Follow me on [Twitter](https://twitter.com/row_net)
 
-### Environment variables
-
-#### Client (in `client/.env`)
-
-```bash
-API_URL=http://localhost:3333
-WS_URL=http://localhost:3333
-BASE_UNIT=VELOX
-```
-#### Server (in `server/src/config/default.json`)
-```
-cp server/src/config/default.json server/src/config/local.json
-```
-```
-{
-  "APP_ENV": "prod",
-  "MONGODB": "localhost",
-  "MONGODB_URI": "mongodb://localhost:27017/explorer",
-  "redis": {
-    "host": "localhost",
-    "port": 6379,
-    "password": null,
-    "prefix": "TomoScan"
-  },
-
-  "WEB3_URI": "https://testnet.veloxchain.com/",
-  "WEB3_WS_URI": "wss://testnet.veloxchain.com/ws",
-  "DEBUG_QUERY": false,
-
-  "BASE_UNIT": "VELOX",
-  "PORT": 3333,
-  "DEBUG": "express:*",
-
-  "JWT_SECRET": "RANDOM_HASH",
-  "APP_SECRET": "RANDOM_HASH",
-
-  "SENDGRID_API_KEY": "",
-  "SENDER_EMAIL": "",
-
-  "CLIENT_URL": "http://localhost:3000/",
-  "CMC_ID": 2570,
-  "SLACK_WEBHOOK_URL": ""
-}
-```
