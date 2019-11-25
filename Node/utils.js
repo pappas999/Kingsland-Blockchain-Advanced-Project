@@ -4,25 +4,6 @@ const secp256k1 = new EC('secp256k1');
 
 
 module.exports = {
-	//Functions to convert Map -> Json and vice versa, taken from 
-	// https://2ality.com/2015/08/es6-map-json.html
-	strMapToObj(strMap) {
-		let obj = Object.create(null);
-		for (let [k,v] of strMap) {
-			// We don’t escape the key '__proto__'
-			// which can cause problems on older engines
-			obj[k] = v;
-		}
-		return obj;
-	},
-
-	objToStrMap(obj) {
-		let strMap = new Map();
-		for (let k of Object.keys(obj)) {
-			strMap.set(k, obj[k]);
-		}
-		return strMap;
-	},
 	
 	validURL(str) {
 		const regex = '^((https?:\/\/))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):[0-9][0-9][0-9][0-9]$';
@@ -50,10 +31,11 @@ module.exports = {
 	},
 	
 	verifySignature(data, pubKeyCompressed, signature) {
-		console.log('in verify signature');
+		
+		/*console.log('in verify signature');
 		console.log('pubKeyCompressed: ' + pubKeyCompressed);
 		console.log('data: ' + data);
-		console.log('signature: ' + signature);
+		console.log('signature: ' + signature);*/
 		
 		let pubKeyX = pubKeyCompressed.substring(0, 64);
 		let pubKeyOdd = parseInt(pubKeyCompressed.substring(64));
@@ -63,5 +45,34 @@ module.exports = {
 		let result = keyPair.verify(data, {r: signature[0], s : signature[1]});
 	
 		return result;
+	},
+	
+	//helper function used to validate if an address exists. Must validate format only.
+	validateAddress(address) {
+
+		var re = /[0-9A-Fa-f]{6}/g;
+		if(!re.test(address) || address.length != 40) {
+			return 0;
+		}
+
+		return 1;
+	},
+	
+	derivePubKeyFromPrivate(privateKey) {
+		let keyPair = secp256k1.keyFromPrivate(privateKey);
+		let pubKey = keyPair.getPublic();
+
+		let pubKey_x = pubKey.getX().toString(16, 64);
+		let pubKey_y = pubKey.getY().toString(16, 64);
+    
+		return pubKey_x + parseInt(pubKey_y[63], 16) % 2;
+	},
+	
+	signData(data, privKey) {
+		let keyPair = secp256k1.keyFromPrivate(privKey);
+		let signature = keyPair.sign(data);
+
+		return [signature.r.toString(16, 64), signature.s.toString(16, 64)];
 	}
+
 }
