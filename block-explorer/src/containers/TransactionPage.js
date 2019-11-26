@@ -9,6 +9,10 @@ import VideosPage from '../components/VideosPage';
 import '../styles/style.css';
 
 
+import {getBlocksInfo, getBlocksDetail} from '../Api/explorer';
+import { flickrImages, shutterStockVideos } from '../Api/api';
+
+
 export class TransactionPage extends Component {
   constructor() {
     super();
@@ -49,7 +53,7 @@ export class TransactionPage extends Component {
           <input
             type="submit"
             className="btn btn-primary"
-            value="Search Library"
+            value="Search Transaction"
             onClick={this.handleSearch}
           />
           <div className="row">
@@ -70,7 +74,7 @@ export class TransactionPage extends Component {
   }
 }
 
-MediaGalleryPage.propTypes = {
+TransactionPage.propTypes = {
   images: PropTypes.array,
   selectedImage: PropTypes.object,
   videos: PropTypes.array,

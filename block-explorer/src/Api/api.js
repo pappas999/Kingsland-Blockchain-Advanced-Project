@@ -26,8 +26,12 @@ export const shutterStockVideos = (searchQuery) => {
 
 export const flickrImages = (searchQuery) => {
   const FLICKR_API_ENDPOINT = `https://api.flickr.com/services/rest/?method=flickr.photos.search&text=${searchQuery}&api_key=${FLICKR_API_KEY}&format=json&nojsoncallback=1&per_page=10`;
+    console.log("response" + FLICKR_API_ENDPOINT);
+
   return fetch(FLICKR_API_ENDPOINT)
     .then(response => {
+           console.log("response");
+                     console.log(response);
       return response.json()
     })
     .then(json => {

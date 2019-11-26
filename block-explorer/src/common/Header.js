@@ -12,7 +12,7 @@ const Header = () => (
        {" | "}
      <Link to="address" activeClassName="active">Address</Link>
      {" | "}
-    <Link to="library" activeClassName="active">Library</Link>
+    <Link to="peer" activeClassName="active">Peer</Link>
     </nav>
   </div>
 );

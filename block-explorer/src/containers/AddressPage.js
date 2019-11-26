@@ -49,7 +49,7 @@ export class AddressPage extends Component {
           <input
             type="submit"
             className="btn btn-primary"
-            value="Search Library"
+            value="Search Address"
             onClick={this.handleSearch}
           />
           <div className="row">
@@ -70,7 +70,7 @@ export class AddressPage extends Component {
   }
 }
 
-MediaGalleryPage.propTypes = {
+AddressPage.propTypes = {
   images: PropTypes.array,
   selectedImage: PropTypes.object,
   videos: PropTypes.array,
