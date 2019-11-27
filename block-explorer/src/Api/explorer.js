@@ -45,8 +45,8 @@ export const getBlockDetail = (index) => {
 
 
 
-export const getListPendingTransaction =() => {
-  const PENDING_TRANSACTION_URL = URL_Host + "/transactions/confirmed";
+export const getListPendingTransaction = () => {
+  const PENDING_TRANSACTION_URL = URL_Host + "/transactions/pending";
 
   return fetch(PENDING_TRANSACTION_URL)
      .then(response => {
@@ -55,8 +55,9 @@ export const getListPendingTransaction =() => {
 }
 
 
-export const getListConfirmedTransaction =() => {
-  const CONFIRMED_TRANSACTION_URL = URL_Host + "/transactions/pending";
+export const getListConfirmedTransaction = () => {
+  const CONFIRMED_TRANSACTION_URL = URL_Host + "/transactions/confirmed";
+  console.log(CONFIRMED_TRANSACTION_URL);
   return fetch(CONFIRMED_TRANSACTION_URL)
     .then(response => {
       return response.json();

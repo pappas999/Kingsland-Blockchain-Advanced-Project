@@ -26,6 +26,13 @@ export const listTransactionAction =(payload) =>({
   payload
 })
 
+export const searchTransactionAction =(payload) =>({
+  type: types.SEARCH_TRANSACTION_REQUEST,
+  payload
+})
+
+
+
 
 
 export const searchAddressAction = (payload) => ({

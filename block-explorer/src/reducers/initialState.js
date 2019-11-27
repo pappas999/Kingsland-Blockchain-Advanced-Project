@@ -1,5 +1,9 @@
 export default {
   images: [],
   videos: [],
-  blocks:[]
+  blocks:[],
+  confirmedTransactions:[],
+  pendingTransactions:[],
+  addresses:[],
+  peers:[]
 };

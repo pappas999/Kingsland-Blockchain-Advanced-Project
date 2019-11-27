@@ -4,7 +4,7 @@ import videos from './videoReducer';
 
 import blocks from './blockReducer';
 import transactions from './transactionReducer';
-import addresses from './addressesReducer';
+import addresses from './addressReducer';
 
 
 const rootReducer = combineReducers({

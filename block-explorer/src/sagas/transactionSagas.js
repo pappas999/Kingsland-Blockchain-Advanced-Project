@@ -1,22 +1,28 @@
 import {put, call} from 'redux-saga/effects';
 
-import {getListPendingTransaction, getListConfirmedTransaction} from '../Api/explorer';
+import {getListPendingTransaction,
+      getListConfirmedTransaction,
+      getTransactionDetail } from '../Api/explorer';
+      import * as types from '../constants/actionTypes';
 
-export function* listTransactionSaga({payload}) {
+export default function* searchTransactionSaga({payload}) {
 
   try {
-     const pendingTransaction = yield call(getListPendingTransaction, payload);
-     const confirmedTransaction  = yield call(getListConfirmedTransaction, payload);
-     const transactions = [];
-     transactions['pending'] = pendingTransaction;
-     transactions['confirm'] = confirmedTransaction;
+     const selectedTransaction = yield call(getTransactionDetail, payload);
+     const pendingTransactions = yield call(getListPendingTransaction,payload);
+      const confirmedTransactions  = yield call(getListConfirmedTransaction,payload);
 
-      yield [
-        put({type: types.LIST_TRANSACTION, transactions}),
-      ]
+      console.log("pending transaction");
+      console.log(confirmedTransactions);
+
+
+     yield [
+      put({type: types.LIST_TRANSACTION, confirmedTransactions: confirmedTransactions}),
+      put({type: types.SELECTED_TRANSACTION, selectedTransaction: selectedTransaction })
+     ]
 
   } catch (error) {
-    yield put({type: 'LIST_TRANSACTION_ERROR', error})
+       yield put({type: 'SEARCH_TRANSACTION_ERROR', error});
   }
 
 }

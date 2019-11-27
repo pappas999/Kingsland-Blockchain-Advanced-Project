@@ -8,7 +8,7 @@ export default function (state = initialState.addresses, action) {
         return [...state, action.addresses]
     case types.SEARCH_TRANSACTION_ADDRESS:
         return {...state, selectedAddress: action.address};
-    case types.SEARCH_BALANCE_ADDRESS:
+    case types.SEARCH_BALANCE_SEARCH_ADDRESS_REQUEST:
         return {...state, selectedAddress: action.address};
     default:
       return state;
