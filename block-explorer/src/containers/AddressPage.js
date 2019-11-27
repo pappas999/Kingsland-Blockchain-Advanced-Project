@@ -1,89 +1,106 @@
 import React, { PropTypes, Component } from 'react';
 import { connect } from 'react-redux';
-import {
-  selectImageAction, searchMediaAction,
-  selectVideoAction
-} from '../actions/mediaActions';
-import PhotosPage from '../components/PhotosPage';
-import VideosPage from '../components/VideosPage';
 import '../styles/style.css';
 
+import {
+  searchAddressAction, searchTransactionAddressAction
+} from '../actions/explorerActions';
+
+import {getAccount, getAccountTransaction} from '../Api/explorer';
 
 export class AddressPage extends Component {
   constructor() {
     super();
-    this.handleSearch = this.handleSearch.bind(this);
-    this.handleSelectImage = this.handleSelectImage.bind(this);
-    this.handleSelectVideo = this.handleSelectVideo.bind(this);
+    //this.handleBalanceSearch = this.handleBalanceSearch.bind(this);
+    this.handleTransactionSearch = this.handleTransactionSearch.bind(this);
   }
 
   componentDidMount() {
-    this.props.dispatch(searchMediaAction('rain'));
+    this.props.dispatch(searchAddressAction('0000000000000000000000000000000000000000'));
   }
 
-  handleSelectImage(selectedImage) {
-    this.props.dispatch(selectImageAction(selectedImage));
-  }
-
-  handleSelectVideo(selectedVideo) {
-    this.props.dispatch(selectVideoAction(selectedVideo));
-  }
-
-  handleSearch(event) {
+  /*handleBalanceSearch(event) {
     event.preventDefault();
     if (this.query !== null) {
-      this.props.dispatch(searchMediaAction(this.query.value));
+      this.props.dispatch(searchAddressAction(this.query.value));
       this.query.value = '';
+    }
+  }*/
+
+
+  handleTransactionSearch(event) {
+    event.preventDefault();
+    if( this.query !== null) {
+      this.props.dispatch(searchTransactionAddressAction(this.query.value));
+      this.query.value= '';
     }
   }
 
+
   render() {
-    const { images, selectedImage, videos, selectedVideo } = this.props;
+    const { balAccount, tranAccount} = this.props;
+    console.log("Account");
+    console.log(tranAccount);
     return (
-      <div className="container-fluid">
-        {images && selectedImage ? <div>
-          <input
-            type="text"
-            ref={ref => (this.query = ref)}
-          />
-          <input
-            type="submit"
-            className="btn btn-primary"
-            value="Search Address"
-            onClick={this.handleSearch}
-          />
-          <div className="row">
-            <PhotosPage
-              images={images}
-              selectedImage={selectedImage}
-              onHandleSelectImage={this.handleSelectImage}
-            />
-            <VideosPage
-              videos={videos}
-              selectedVideo={selectedVideo}
-              onHandleSelectVideo={this.handleSelectVideo}
-            />
-          </div>
-        </div> : 'loading ....'}
+      <div>
+      <div className="col-md-6">
+        <input
+                    type="text"
+                    ref={ref => (this.query = ref)}
+                  />
+                  <input
+                    type="submit"
+                    className="btn btn-primary"
+                    value="Search Transaction Account"
+                    onClick={this.handleTransactionSearch}
+                  />
+          {balAccount ? <div>
+               <h6> Transaction at 0</h6>
+               <h6> from : {tranAccount[0].from}</h6>
+               <h6> To : {tranAccount[0].to}</h6>
+               <h6> Transaction DataHash : { tranAccount[0].transactionDataHash }</h6>
+
+          </div>: 'loading....'}
       </div>
+
+
+       </div>
     );
   }
 }
 
+
+/* <div className="col-md-6">
+        <input
+                    type="text"
+                    ref={ref => (this.query = ref)}
+                  />
+                  <input
+                    type="submit"
+                    className="btn btn-primary"
+                    value="Search Balance Account"
+                    onClick={this.handleBalanceSearch}
+                  />
+          {balAccount ? <div>
+               <h6> Balance Account</h6>
+               <h6> Confirmed Balance : {balAccount.confirmedBalance}</h6>
+               <h6> Pending Balance : {balAccount.pendingBalance}</h6>
+               <h6> Safe Balance : { balAccount.safeBalance }</h6>
+
+          </div>: 'loading....'}
+      </div>*/
+
 AddressPage.propTypes = {
-  images: PropTypes.array,
-  selectedImage: PropTypes.object,
-  videos: PropTypes.array,
-  selectedVideo: PropTypes.object,
+  balAccount: PropTypes.object,
+  tranAccount: PropTypes.array,
   dispatch: PropTypes.func.isRequired
+
 };
 
 /* Subscribe component to redux store and merge the state into component\s props */
-const mapStateToProps = ({ images, videos }) => ({
-  images: images[0],
-  selectedImage: images.selectedImage,
-  videos: videos[0],
-  selectedVideo: videos.selectedVideo
+const mapStateToProps = ({ addresses }) => ({
+  balAccount: addresses.balAccount,
+  tranAccount: addresses.transactionAccount
 });
 
 /* connect method from react-router connects the component with redux store */

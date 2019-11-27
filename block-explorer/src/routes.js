@@ -1,7 +1,6 @@
 import React from 'react';
 import { Route, IndexRoute } from 'react-router';
 
-import MediaGalleryPage from './containers/MediaGalleryPage';
 import BlockPage from './containers/BlockPage';
 import TransactionPage from './containers/TransactionPage';
 import AddressPage from './containers/AddressPage';

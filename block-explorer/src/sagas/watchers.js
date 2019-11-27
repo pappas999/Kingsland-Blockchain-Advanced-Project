@@ -1,9 +1,10 @@
 import { takeLatest } from 'redux-saga/effects';
-import searchMediaSaga from './mediaSagas';
 
 import searchBlockSaga from './blockSagas';
 
 import searchTransactionSaga from './transactionSagas';
+
+import searchAddressSaga from './addressSagas';
 
 import * as types from '../constants/actionTypes';
 
@@ -19,4 +20,14 @@ export  function* watchSearchBlock() {
 export function* watchSearchTransaction(){
   yield takeLatest(types.SEARCH_TRANSACTION_REQUEST, searchTransactionSaga);
 }
+
+export function* watchSearchAddress() {
+  yield [
+     takeLatest(types.SEARCH_ADDRESS_REQUEST, searchAddressSaga),
+     takeLatest(types.SEARCH_TRANSACTION_ADDRESS_REQUEST, searchAddressSaga)
+  ]
+}
+
+
+
 

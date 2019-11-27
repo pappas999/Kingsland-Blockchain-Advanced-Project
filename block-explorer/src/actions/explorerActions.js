@@ -18,9 +18,6 @@ export const listBlockAction =(payload) =>({
 
 
 
-
-
-
 export const listTransactionAction =(payload) =>({
   type: types.LIST_TRANSACTION,
   payload

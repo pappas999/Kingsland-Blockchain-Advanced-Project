@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf7b92c3-20bf-4ee3-b920-e0a1d983048f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../block-explorer/src/Api/explorer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Faucet/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Faucet/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../block-explorer/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../block-explorer/src/constants/actionTypes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/constants/actionTypes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../block-explorer/src/containers/AddressPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/containers/AddressPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../block-explorer/src/containers/BlockPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/containers/BlockPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../block-explorer/src/containers/TransactionPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/containers/TransactionPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../block-explorer/src/routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../block-explorer/src/sagas/addressSaga.js" beforeDir="false" afterPath="$PROJECT_DIR$/../block-explorer/src/sagas/addressSaga.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,8 +18,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/node.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="71">
-              <caret line="1265" column="58" lean-forward="true" selection-start-line="1265" selection-start-column="58" selection-end-line="1265" selection-end-column="58" />
+            <state relative-caret-position="-3129">
+              <caret line="1257" column="22" selection-start-line="1257" selection-start-column="14" selection-end-line="1257" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -57,7 +50,7 @@
   <component name="ProjectFrameBounds">
     <option name="y" value="23" />
     <option name="width" value="1672" />
-    <option name="height" value="828" />
+    <option name="height" value="827" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -65,6 +58,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -76,7 +70,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -109,10 +102,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1672" height="828" extended-state="0" />
+    <frame x="0" y="23" width="1672" height="827" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.12085889" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.12208589" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -143,8 +136,8 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/node.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="71">
-          <caret line="1265" column="58" lean-forward="true" selection-start-line="1265" selection-start-column="58" selection-end-line="1265" selection-end-column="58" />
+        <state relative-caret-position="-3129">
+          <caret line="1257" column="22" selection-start-line="1257" selection-start-column="14" selection-end-line="1257" selection-end-column="22" />
         </state>
       </provider>
     </entry>

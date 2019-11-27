@@ -95,6 +95,8 @@ export const getAccountTransaction = (accountAddress) => {
 export const getPeersMap = () => {
   const PEER_URL = URL_Host + "/peers";
 
+  console.log(PEER_URL);
+
   return fetch(PEER_URL)
      .then(response => {
         return response.json();
