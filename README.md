@@ -10,15 +10,33 @@ With no extra parameters, the node will start at localhost:5555 by default<BR><b
 All API endpoints are as per the definition in the 'REST API for Practical Project' document
 
 <h2> Wallet Instructions </h2>
-The wallet app is a client-side web application. Just open the <i>index.html</i> inside the Wallet directory.
-Create a new wallet (HD Wallet), check your balances, sign transactions, and send transactions to the blockchain.
+The Wallet App for this project is a purely client-side web application. All the computations and and logic happen in the browser.
+The wallet app is a Hierarchical Deterministic(HD) wallet. The heart of the wallet app can be found [here](https://github.com/pappas999/Kingsland-Blockchain-Advanced-Project/blob/master/Wallet/libs/walletApp.js).
+
+<h3> Wallet Operations
+1. To open the wallet application, just open the `index.html` file inside the `Wallet` directory using your browser. For best experience, Google Chrome is recommended.
+2. On the app, you could create a new wallet by clicking the Create Wallet. You will also be asked by a password to create a new wallet. Once you submit the form, the app wiill create a new wallet and will give you your wallet mnemonic. Please save this mnemonic!
+3. There is also an option to Open an existing wallet, just enter your password and mnemonic and submit.
+4. Just in case you forgot your mnemonic, there is also an option to view your existing mnemonic.
+5. There is also a tab to view your wallet addresses and balances. You will have 5 addresses and balances.
+6. You could also send transactions (create, sign and send to blockchain node)
+7. And lastly, you could logout of your wallet and your wallet instance will be cleared on the browser.
 
 
 <h2> Faucet Instructions</h2>
-In the faucet directory, run <i>npm install</i> to install the dependencies
+The Faucet application is an Express/Node JS web app. Thisfaucet will give your wallet some coins to use.
 
-Once the dependencies are installed, run <i>npm start</i>
+<h3> Setup </h3>
+In the Faucet directory, run <i>npm install</i> to install the dependencies.
 
-Go to your browser, and access <i>http://localhost:3000</i>
+<h3> Running the Faucet App
+1. Once the dependencies are installed the following command:
+```
+npm start
+```
 
-Fill up the form and make a request from the faucet.
+2. Go to your browser, and access `http://localhost:3000`.
+
+3. Fill up the form (your address, blockchain node, and captcha) and click submit. The faucet will give you a random number of coins between 0.5 coin (500000 microcoins) to 1 coin (1000000 microcoins)
+
+4. You can only request from the faucet app once every one hour.
