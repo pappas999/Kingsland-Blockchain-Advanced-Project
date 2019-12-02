@@ -31,7 +31,8 @@ The Faucet application is an Express/Node JS web app. Thisfaucet will give your 
 <h3> Setup </h3>
 In the Faucet directory, run <i>npm install</i> to install the dependencies.
 
-<h3> Running the Faucet App
+<h3> Running the Faucet App</h3>
+
 1. Once the dependencies are installed the following command:
 ```
 npm start
