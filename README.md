@@ -6,7 +6,8 @@ Checkout code to a local repository, ensure you have all dependencies installed 
 Then to run the Node run the following command from the Node directory:<BR><BR>
 <i>node node.js host port</i><br><BR>
 where host is the host, eg localhost, and port is the port number, eg 7777<br><BR>
-With no extra parameters, the node will start at localhost:5555 by default<BR>
+With no extra parameters, the node will start at localhost:5555 by default<BR><br>
+All API endpoints are as per the definition in the 'REST API for Practical Project' document
 
 <h2> Wallet Instructions </h2>
 The wallet app is a client-side web application. Just open the <i>index.html</i> inside the Wallet directory.
