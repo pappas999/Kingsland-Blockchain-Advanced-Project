@@ -10,10 +10,12 @@ With no extra parameters, the node will start at localhost:5555 by default<BR><b
 All API endpoints are as per the definition in the 'REST API for Practical Project' document
 
 <h2> Wallet Instructions </h2>
+
 The Wallet App for this project is a purely client-side web application. All the computations and and logic happen in the browser.
 The wallet app is a Hierarchical Deterministic(HD) wallet. The heart of the wallet app can be found [here](https://github.com/pappas999/Kingsland-Blockchain-Advanced-Project/blob/master/Wallet/libs/walletApp.js).
 
-<h3> Wallet Operations
+<h3> Wallet Operations </h3>
+  
 1. To open the wallet application, just open the `index.html` file inside the `Wallet` directory using your browser. For best experience, Google Chrome is recommended.
 2. On the app, you could create a new wallet by clicking the Create Wallet. You will also be asked by a password to create a new wallet. Once you submit the form, the app wiill create a new wallet and will give you your wallet mnemonic. Please save this mnemonic!
 3. There is also an option to Open an existing wallet, just enter your password and mnemonic and submit.
