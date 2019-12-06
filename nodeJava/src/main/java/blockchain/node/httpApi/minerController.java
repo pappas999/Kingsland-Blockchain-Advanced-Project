@@ -125,23 +125,17 @@ public class minerController {
             params.put("nonce", nonce);
             params.put("blockHash", blockHash);
 
-            StringBuilder postData = new StringBuilder();
+            Gson gson = new Gson();
+            String json = gson.toJson(params);
 
-            for(Map.Entry<String, Object> param : params.entrySet()) {
-                if(postData.length() != 0)
-                    postData.append('&');
-                postData.append(URLEncoder.encode(param.getKey(),"UTF-8"));
-                postData.append('=');
-                postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-            }
-
-            byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+            byte[] postDataBytes = json.getBytes("UTF-8");
             HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Access-Control-Allow-Origin", "*");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+            conn.setRequestProperty("Accept", "application/json");
             conn.setDoOutput(true);
             conn.getOutputStream().write(postDataBytes);
 

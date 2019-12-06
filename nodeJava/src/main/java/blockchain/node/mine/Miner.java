@@ -50,7 +50,7 @@ public class Miner {
             pow += "0";
         }
         while(! blockHash.toString().startsWith(pow)) {
-            pow += "0";
+            nonce++;
             blockHash = getBlockHash(blockDatahash, createdDate, nonce);
         }
 
