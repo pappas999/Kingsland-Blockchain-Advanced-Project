@@ -1,7 +1,6 @@
 var cryptoJS = require("crypto-js");
 var express = require("express");
 var bodyParser = require('body-parser');
-var WebSocket = require("ws");
 const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
 const cors = require('cors');
