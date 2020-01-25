@@ -1,5 +1,7 @@
 # Kingsland-Blockchain-Advanced-Project
 
+This is a group submission for the Kingsland University MI5 Advanced Project module. The project consists of a nodeJS based fully working Proof Of Work Blockchain, Wallet, Faucet & Transaction Explorer. The blockchain was built by Harry Papacharissiou, with Roangelo Lacamento contributing to the sending transactions part of the blockchain & building the Wallet & Faucet, &  Eric Bui building the Transaction Explorer
+
 <h2> Node Instructions</h2>
 Checkout code to a local repository, ensure you have all dependencies installed by running npm install<BR>
 
@@ -26,7 +28,7 @@ The wallet app is a Hierarchical Deterministic(HD) wallet. The heart of the wall
 
 
 <h2> Faucet Instructions</h2>
-The Faucet application is an Express/Node JS web app. Thisfaucet will give your wallet some coins to use.
+The Faucet application is an Express/Node JS web app. This faucet will give your wallet some coins to use.
 
 <h3> Setup </h3>
 In the Faucet directory, run <i>npm install</i> to install the dependencies.
