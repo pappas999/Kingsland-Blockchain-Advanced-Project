@@ -1,6 +1,8 @@
 # Kingsland-Blockchain-Advanced-Project
 
-This is a group submission for the Kingsland University MI5 Advanced Project module. The project consists of a nodeJS based fully working Proof Of Work Blockchain, Wallet, Faucet & Transaction Explorer. The blockchain was built by Harry Papacharissiou, with Roangelo Lacamento contributing to the sending transactions part of the blockchain & building the Wallet & Faucet, &  Eric Bui building the Transaction Explorer
+This is a group submission for the Kingsland University MI5 Advanced Project module. The project consists of a nodeJS based fully working Proof Of Work Blockchain, Wallet, Faucet & Transaction Explorer. The blockchain was built by Harry Papacharissiou, with Roangelo Lacamento contributing to the sending transactions part of the blockchain & building the Wallet & Faucet, &  Eric Bui building the Transaction Explorer.
+
+All REST endpoints were built according to specs defined in the project definition. For the purposes of testing & time restraints, it is not a fully P2P network, and currently uses REST endpoints for peers to connect to eachother.
 
 <h2> Node Instructions</h2>
 Checkout code to a local repository, ensure you have all dependencies installed by running npm install<BR>
